@@ -4866,6 +4866,9 @@ App.prototype.getModeForChar = function(char)
 	{
 		return App.MODE_TRELLO;
 	}
+	else if (char == 'X'){
+		return App.MODE_REMOTE;
+	}
 	else
 	{
 		return null;
@@ -5025,6 +5028,7 @@ App.prototype.createFile = function(title, data, libs, mode, done, replace, fold
 			var fileCreated = mxUtils.bind(this, function(file)
 			{
 				complete();
+				// 文件创建成功后的回调
 				this.fileCreated(file, libs, replace, done, clibs, success);
 			});
 
@@ -5092,11 +5096,14 @@ App.prototype.createFile = function(title, data, libs, mode, done, replace, fold
 	}
 };
 
+
 /**
- * Translates this point by the given vector.
- * 
- * @param {number} dx X-coordinate of the translation.
- * @param {number} dy Y-coordinate of the translation.
+ * @param file 文件 比如 LocalFile
+ * @param libs
+ * @param replace
+ * @param done
+ * @param clibs
+ * @param success
  */
 App.prototype.fileCreated = function(file, libs, replace, done, clibs, success)
 {
@@ -5973,7 +5980,12 @@ App.prototype.loadLibraries = function(libs, done)
 									peer = this.oneDrive;
 								}
 							}
-							
+							else if (service == 'X')
+							{
+								if (this.remote != null) {
+									peer = this.remote;
+								}
+							}
 							if (peer != null)
 							{
 								peer.getLibrary(decodeURIComponent(id.substring(1)), mxUtils.bind(this, function(file)
@@ -6773,7 +6785,7 @@ App.prototype.exportFile = function(data, filename, mimeType, base64Encoded, mod
 	}
 	else if (mode == App.MODE_GITLAB)
 	{
-		if (this.gitHub != null && this.spinner.spin(document.body, mxResources.get('saving')))
+		if (this.gitLab != null && this.spinner.spin(document.body, mxResources.get('saving')))
 		{
 			// Must insert file as library to force the file to be written
 			this.gitLab.insertFile(filename, data, mxUtils.bind(this, function()
@@ -6835,6 +6847,22 @@ App.prototype.exportFile = function(data, filename, mimeType, base64Encoded, mod
 			{
 				this.confirm(mxResources.get('replaceIt', [filename]), fn);
 			}
+		}
+	}
+	else if (mode == App.MODE_REMOTE)
+	{
+	// 	在远端场景下的导出，直接复用
+		if (this.remote != null && this.spinner.spin(document.body, mxResources.get('saving')))
+		{
+			// Must insert file as library to force the file to be written
+			this.remote.insertFile(filename, data, mxUtils.bind(this, function()
+			{
+				this.spinner.stop();
+			}), mxUtils.bind(this, function(resp)
+			{
+				this.spinner.stop();
+				this.handleError(resp);
+			}), true, folderId, base64Encoded);
 		}
 	}
 };

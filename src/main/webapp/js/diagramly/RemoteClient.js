@@ -17,6 +17,7 @@
      */
     RemoteClient.prototype.extension = '.drawio';
 
+    RemoteClient.prototype.maxFileSize = 50000000 /*50MB*/;
     /**
      * 后端api基础地址
      */
@@ -54,25 +55,99 @@
      * @param data 需要保存的数据
      * @param success 保存成功回调
      * @param error 保存失败回调
+     * @param asLibrary
+     * @param folderId
+     * @param base64Encoded
      */
-    RemoteClient.prototype.insertFile = function (filename, data, success, error) {
-        const fileId = new Date().getTime()
-        // 开始构建请求
-        const requestBody = {
-            filename:filename,
-            fileId: fileId,
-            data: data,
-        }
-        // TODO 需要考虑如何透传一个文件的唯一ID，不同于folderId，而是fileId
-        const req = new mxXmlRequest(this.saveUrl, JSON.stringify(requestBody), 'POST');
+    RemoteClient.prototype.insertFile = function (filename, data, success, error, asLibrary = false, folderId, base64Encoded = true) {
+        const fileId = new Date().getTime();
 
-        this.executeRequest(req, mxUtils.bind(this, function () {
-            if (req.getStatus() === 200) {
-                success(req);
-            } else {
-                error({message: '请求远端接口失败'});
+        if (!asLibrary) {
+            // 不进行包装的时候直接进行数据传输
+            // 开始构建请求
+            const requestBody = {
+                filename: filename,
+                fileId: fileId,
+                data: data,
+                base64Encoded: false,
             }
-        }), error);
+            // TODO 需要考虑如何透传一个文件的唯一ID，而是fileId
+            const req = new mxXmlRequest(this.saveUrl, JSON.stringify(requestBody), 'POST');
+
+            this.executeRequest(req, mxUtils.bind(this, function () {
+                if (req.getStatus() === 200) {
+                    success(req);
+                } else {
+                    error({message: '请求远端接口失败'});
+                }
+            }), error);
+        } else {
+            if (!base64Encoded) {
+                data = Base64.encode(data);
+            }
+            this.writeFile(fileId, filename, base64Encoded,data, mxUtils.bind(this, function (req) {
+                try {
+                    const msg = JSON.parse(req.getText());
+                    success(this.createRemoteFile(fileId, filename,msg.content, asLibrary));
+                } catch (e) {
+                    error(e);
+                }
+            }), error);
+        }
+
+    };
+    /**
+     * Translates this point by the given vector.
+     *
+     * @param fileId 文件ID
+     * @param filename 文件名称
+     * @param data 请求体的数据
+     * @param asLibrary
+     */
+    RemoteClient.prototype.createRemoteFile = function(fileId, filename,data, asLibrary)
+    {
+        console.log("当前请求获取到数据为", data);
+        // TODO 需要根据导出进行调试
+        const meta = {
+            id: fileId,
+            title: filename,
+            data: data,
+        };
+        var content = data.data;
+
+        if (data.encoding === 'base64')
+        {
+            if (/\.jpe?g$/i.test(data.name))
+            {
+                content = 'data:image/jpeg;base64,' + content;
+            }
+            else if (/\.gif$/i.test(data.name))
+            {
+                content = 'data:image/gif;base64,' + content;
+            }
+            else
+            {
+                if (/\.png$/i.test(data.name))
+                {
+                    var xml = this.ui.extractGraphModelFromPng(content);
+
+                    if (xml != null && xml.length > 0)
+                    {
+                        content = xml;
+                    }
+                    else
+                    {
+                        content = 'data:image/png;base64,' + content;
+                    }
+                }
+                else
+                {
+                    content = Base64.decode(content);
+                }
+            }
+        }
+
+        return (asLibrary) ? new RemoteLibrary(this.ui, content, meta) : new RemoteFile(this.ui, content, filename,fileId);
     };
     /**
      * 发送请求
@@ -179,6 +254,28 @@
             }), error);
         }
     };
-
+    /**
+     * 写入文件
+     */
+    RemoteClient.prototype.writeFile = function (fileId, fileTitle,base64Encoded, data, success, error) {
+        if (data.length >= this.maxFileSize) {
+            error({
+                message: mxResources.get('drawingTooLarge') + ' (' +
+                    this.ui.formatFileSize(data.length) + ' / 1 MB)'
+            });
+        } else {
+            const entity =
+                {
+                    fileId: fileId,
+                    fileName: fileTitle,
+                    data: data,
+                    base64Encoded: !base64Encoded,
+                };
+            const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
+            this.executeRequest(req, mxUtils.bind(this, function (req) {
+                success(req);
+            }), error);
+        }
+    };
 })();
 

@@ -838,6 +838,6 @@
 				}
 			}
 		}
-	})();
+	})()})();
 // Last line will be replaced by servlet for passing arguments.
 

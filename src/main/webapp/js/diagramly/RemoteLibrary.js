@@ -3,7 +3,7 @@
  */
 RemoteLibrary = function(ui, data, libObj)
 {
-	RemoteFile.call(this, ui, data, libObj.title);
+	RemoteFile.call(this, ui, data, libObj.title,libObj.id);
 	this.libObj = libObj;
 };
 
@@ -15,7 +15,8 @@ mxUtils.extend(RemoteLibrary, LocalFile);
  */
 RemoteLibrary.prototype.getHash = function()
 {
-	return 'R' + encodeURIComponent(JSON.stringify([this.libObj.id, this.libObj.title, this.libObj.downloadUrl])); //Using an array to get the same order in all platforms
+	// 定制一个开头
+	return encodeURIComponent('X' + JSON.stringify([this.libObj.id, this.libObj.title]));
 };
 
 /**

@@ -5431,10 +5431,7 @@ EditorUi.prototype.openFile = function()
 };
 
 /**
- * Translates this point by the given vector.
- * 
- * @param {number} dx X-coordinate of the translation.
- * @param {number} dy Y-coordinate of the translation.
+ * 将base64数据格式转为Blob数据格式
  */
 EditorUi.prototype.base64ToBlob = function(base64Data, contentType)
 {
