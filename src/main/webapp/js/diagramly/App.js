@@ -1805,17 +1805,15 @@ App.prototype.init = function()
 		this.sidebarContainer.style.display = 'none';
 		
 		// Sets the initial mode
-		// if (urlParams['local'] == '1')
-		// {
-		// 	this.setMode(App.MODE_DEVICE);
-		// }
-		// else
-		// {
-		// 	this.mode = App.mode;
-		// }
-		// 初始化设置为 remote 模式
-		this.mode = App.MODE_REMOTE;
-		localStorage.setItem('.mode', mode);
+		if (urlParams['local'] == '1')
+		{
+			this.setMode(App.MODE_DEVICE);
+		}
+		else
+		{
+			this.mode = App.mode;
+		}
+
 		// Add to Home Screen dialog for mobile devices
 		if ('serviceWorker' in navigator && !this.editor.isChromelessView() &&
 			(mxClient.IS_ANDROID || mxClient.IS_IOS))
