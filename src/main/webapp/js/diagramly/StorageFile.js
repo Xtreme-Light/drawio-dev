@@ -56,7 +56,7 @@ StorageFile.prototype.type = 'F';
  */
 StorageFile.prototype.getMode = function()
 {
-	return App.MODE_BROWSER;
+	return App.MODE_REMOTE; // 更改默认保存行为
 };
 
 /**

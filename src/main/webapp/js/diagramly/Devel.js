@@ -254,6 +254,7 @@ mxscript(drawDevUrl + 'js/diagramly/DropboxClient.js');
 mxscript(drawDevUrl + 'js/diagramly/GitHubFile.js');
 mxscript(drawDevUrl + 'js/diagramly/GitHubLibrary.js');
 mxscript(drawDevUrl + 'js/diagramly/GitHubClient.js');
+mxscript(drawDevUrl + 'js/diagramly/RemoteClient.js');
 mxscript(drawDevUrl + 'js/diagramly/OneDriveFile.js');
 mxscript(drawDevUrl + 'js/diagramly/OneDriveLibrary.js');
 mxscript(drawDevUrl + 'js/diagramly/OneDriveClient.js');
