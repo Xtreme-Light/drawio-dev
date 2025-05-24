@@ -5173,15 +5173,15 @@
 				}
 				else
 				{
-					this.addMenuItems(menu, ['new'], parent);
+					// this.addMenuItems(menu, ['new'], parent);
 				}
 				
-				this.addSubmenu('openFrom', menu, parent);
+				// this.addSubmenu('openFrom', menu, parent);
 
-				if (isLocalStorage)
-				{
-					this.addSubmenu('openRecent', menu, parent);
-				}
+				// if (isLocalStorage)
+				// {
+				// 	this.addSubmenu('openRecent', menu, parent);
+				// }
 				
 				if (file != null && file.constructor == DriveFile)
 				{
@@ -5248,10 +5248,10 @@
 				this.addSubmenu('exportAs', menu, parent);
 				menu.addSeparator(parent);
 				this.addSubmenu('embed', menu, parent);
-				this.addSubmenu('publish', menu, parent);
+				// this.addSubmenu('publish', menu, parent);
 				menu.addSeparator(parent);
-				this.addSubmenu('newLibrary', menu, parent);
-				this.addSubmenu('openLibraryFrom', menu, parent);
+				// this.addSubmenu('newLibrary', menu, parent);
+				// this.addSubmenu('openLibraryFrom', menu, parent);
 				
 				if (editorUi.isRevisionHistorySupported())
 				{
