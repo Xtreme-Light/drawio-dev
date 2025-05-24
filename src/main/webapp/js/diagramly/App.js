@@ -6079,7 +6079,7 @@ App.prototype.updateButtonContainer = function()
 		}
 		
 		// Share
-		if (this.getServiceName() == 'draw.io' &&
+/*		if (this.getServiceName() == 'draw.io' &&
 			urlParams['embed'] != '1' &&
 			!this.isStandaloneApp())
 		{
@@ -6168,7 +6168,7 @@ App.prototype.updateButtonContainer = function()
 					(this.buttonContainer.clientWidth == 0)
 					? 'none' : '';
 			}
-		}
+		}*/
 
 		// Updates comments button CSS
 		if (this.commentButton != null)

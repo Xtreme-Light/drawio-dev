@@ -5205,12 +5205,12 @@
 					
 					this.addMenuItems(menu, ['-', 'save', 'saveAs', '-'], parent);
 					
-					if (!mxClient.IS_CHROMEAPP && !EditorUi.isElectronApp &&
-						editorUi.getServiceName() == 'draw.io' &&
-						!editorUi.isOfflineApp() && file != null)
-					{
-						this.addMenuItems(menu, ['share', '-'], parent);
-					}
+					// if (!mxClient.IS_CHROMEAPP && !EditorUi.isElectronApp &&
+					// 	editorUi.getServiceName() == 'draw.io' &&
+					// 	!editorUi.isOfflineApp() && file != null)
+					// {
+					// 	this.addMenuItems(menu, ['share', '-'], parent);
+					// }
 					
 					if (file != null && file.isRenamable())
 					{
