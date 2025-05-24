@@ -1805,15 +1805,17 @@ App.prototype.init = function()
 		this.sidebarContainer.style.display = 'none';
 		
 		// Sets the initial mode
-		if (urlParams['local'] == '1')
-		{
-			this.setMode(App.MODE_DEVICE);
-		}
-		else
-		{
-			this.mode = App.mode;
-		}
-		
+		// if (urlParams['local'] == '1')
+		// {
+		// 	this.setMode(App.MODE_DEVICE);
+		// }
+		// else
+		// {
+		// 	this.mode = App.mode;
+		// }
+		// 初始化设置为 remote 模式
+		this.mode = App.MODE_REMOTE;
+		localStorage.setItem('.mode', mode);
 		// Add to Home Screen dialog for mobile devices
 		if ('serviceWorker' in navigator && !this.editor.isChromelessView() &&
 			(mxClient.IS_ANDROID || mxClient.IS_IOS))
@@ -3827,16 +3829,23 @@ App.prototype.showSplash = function(force)
 	}
 	else if (!mxClient.IS_CHROMEAPP && (this.mode == null || force))
 	{
-		var rowLimit = (serviceCount == 4) ? 2 : 3;
-		
-		var dlg = new StorageDialog(this, mxUtils.bind(this, function()
-		{
-			this.hideDialog();
-			showSecondDialog();
-		}), rowLimit);
-		
-		this.showDialog(dlg.container, (rowLimit < 3) ? 200 : 300,
-			((serviceCount > 3) ? 320 : 210), true, false);
+		// var rowLimit = (serviceCount == 4) ? 2 : 3;
+		//
+		// var dlg = new StorageDialog(this, mxUtils.bind(this, function()
+		// {
+		// 	this.hideDialog();
+		// 	showSecondDialog();
+		// }), rowLimit);
+		//
+		// this.showDialog(dlg.container, (rowLimit < 3) ? 200 : 300,
+		// 	((serviceCount > 3) ? 320 : 210), true, false);
+		// 这里打开弹窗，选择文件保存的位置
+		this.setMode(App.MODE_REMOTE,true);
+		var prev = Editor.useLocalStorage;
+		this.createFile(this.defaultFilename,
+			null, null, null, null, null, null, true);
+		Editor.useLocalStorage = prev;
+
 	}
 	else if (urlParams['create'] == null)
 	{
