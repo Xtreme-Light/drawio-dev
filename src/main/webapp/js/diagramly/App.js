@@ -267,7 +267,7 @@ App.DROPBOX_URL = 'js/dropbox/Dropbox-sdk.min.js';
 /**
  * Sets URL to load the Dropbox dropins JS from.
  */
-App.DROPINS_URL = 'https://www.dropbox.com/static/api/2/dropins.js';
+// App.DROPINS_URL = 'https://www.dropbox.com/static/api/2/dropins.js';
 
 /**
  * OneDrive Client JS (file/folder picker). This is a slightly modified version to allow using accessTokens
@@ -471,25 +471,25 @@ App.getStoredMode = function()
 			{
 				if (typeof window.DriveClient === 'function')
 				{
-					if (urlParams['gapi'] != '0' && isSvgBrowser &&
-						(document.documentMode == null || document.documentMode >= 10))
-					{
-						// Immediately loads client
-						if (App.mode == App.MODE_GOOGLE || (urlParams['state'] != null &&
-							window.location.hash == '') || (window.location.hash != null &&
-							window.location.hash.substring(0, 2) == '#G'))
-						{
-							mxscript('https://apis.google.com/js/api.js');
-						}
-						// Keeps lazy loading for fallback to authenticated Google file if not public in loadFile
-						else if (urlParams['chrome'] == '0' && (window.location.hash == null ||
-							window.location.hash.substring(0, 45) !== '#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D'))
-						{
-							// Disables loading of client
-							window.DriveClient = null;
-						}
-					}
-					else
+					if (!(urlParams['gapi'] != '0' && isSvgBrowser &&
+						(document.documentMode == null || document.documentMode >= 10)))
+					// {
+					// 	// Immediately loads client
+					// 	if (App.mode == App.MODE_GOOGLE || (urlParams['state'] != null &&
+					// 		window.location.hash == '') || (window.location.hash != null &&
+					// 		window.location.hash.substring(0, 2) == '#G'))
+					// 	{
+					// 		mxscript('https://apis.google.com/js/api.js');
+					// 	}
+					// 	// Keeps lazy loading for fallback to authenticated Google file if not public in loadFile
+					// 	else if (urlParams['chrome'] == '0' && (window.location.hash == null ||
+					// 		window.location.hash.substring(0, 45) !== '#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D'))
+					// 	{
+					// 		// Disables loading of client
+					// 		window.DriveClient = null;
+					// 	}
+					// }
+					// else
 					{
 						// Disables loading of client
 						window.DriveClient = null;
@@ -504,16 +504,17 @@ App.getStoredMode = function()
 						(document.documentMode == null || document.documentMode > 9))
 					{
 						// Immediately loads client
-						if (App.mode == App.MODE_DROPBOX || (window.location.hash != null &&
-							window.location.hash.substring(0, 2) == '#D'))
-						{
-							mxscript(App.DROPBOX_URL, function()
-							{
-								// Must load this after the dropbox SDK since they use the same namespace
-								mxscript(App.DROPINS_URL, null, 'dropboxjs', App.DROPBOX_APPKEY, true);
-							});							
-						}
-						else if (urlParams['chrome'] == '0')
+						// if (App.mode == App.MODE_DROPBOX || (window.location.hash != null &&
+						// 	window.location.hash.substring(0, 2) == '#D'))
+						// {
+						// 	mxscript(App.DROPBOX_URL, function()
+						// 	{
+						// 		// Must load this after the dropbox SDK since they use the same namespace
+						// 		mxscript(App.DROPINS_URL, null, 'dropboxjs', App.DROPBOX_APPKEY, true);
+						// 	});
+						// }
+						// else
+							if (urlParams['chrome'] == '0')
 						{
 							window.DropboxClient = null;
 						}
@@ -871,17 +872,18 @@ App.main = function(callback, createUi)
 				}
 			}
 			
-			// Loads gapi for all browsers but IE8 and below if not disabled or if enabled and in embed mode
-			// Special case: Cannot load in asynchronous code below
-			if (typeof window.DriveClient === 'function' &&
-				(typeof gapi === 'undefined' && (((urlParams['embed'] != '1' && urlParams['gapi'] != '0') ||
-				(urlParams['embed'] == '1' && urlParams['gapi'] == '1')) && isSvgBrowser &&
-				isLocalStorage && (document.documentMode == null || document.documentMode >= 10))))
-			{
-				mxscript('https://apis.google.com/js/api.js?onload=DrawGapiClientCallback', null, null, null, mxClient.IS_SVG);
-			}
-			// Disables client
-			else if (typeof window.gapi === 'undefined')
+			// // Loads gapi for all browsers but IE8 and below if not disabled or if enabled and in embed mode
+			// // Special case: Cannot load in asynchronous code below
+			// if (typeof window.DriveClient === 'function' &&
+			// 	(typeof gapi === 'undefined' && (((urlParams['embed'] != '1' && urlParams['gapi'] != '0') ||
+			// 	(urlParams['embed'] == '1' && urlParams['gapi'] == '1')) && isSvgBrowser &&
+			// 	isLocalStorage && (document.documentMode == null || document.documentMode >= 10))))
+			// {
+			// 	mxscript('https://apis.google.com/js/api.js?onload=DrawGapiClientCallback', null, null, null, mxClient.IS_SVG);
+			// }
+			// // Disables client
+			// else
+			if (typeof window.gapi === 'undefined')
 			{
 				window.DriveClient = null;
 			}
@@ -1536,7 +1538,7 @@ App.prototype.init = function()
 	 * 创建remote 客户端
 	 */
 	try{
-
+		this.remote = new RemoteClient(this);
 	}
 	catch (e)
 	{
@@ -5059,28 +5061,24 @@ App.prototype.createFile = function(title, data, libs, mode, done, replace, fold
 			{
 				StorageFile.insertFile(this, title, data, fileCreated, error);
 			}
-			else if (!tempFile && mode == App.MODE_DEVICE && EditorUi.nativeFileSupport)
-			{
+			else if (mode === App.MODE_REMOTE && this.remote != null) {
+				// 将文件保存到远端
+				this.remote.insertFile(title, data, fileCreated, error);
+			} else if (!tempFile && mode == App.MODE_DEVICE && EditorUi.nativeFileSupport) {
 				complete();
-				
-				this.showSaveFilePicker(mxUtils.bind(this, function(fileHandle, desc)
-				{
+
+				this.showSaveFilePicker(mxUtils.bind(this, function (fileHandle, desc) {
 					var file = new LocalFile(this, data, desc.name, null, fileHandle, desc);
-					
-					file.saveFile(desc.name, false, mxUtils.bind(this, function()
-					{
+
+					file.saveFile(desc.name, false, mxUtils.bind(this, function () {
 						this.fileCreated(file, libs, replace, done, clibs, success);
 					}), error, true);
-				}), mxUtils.bind(this, function(e)
-				{
-					if (e.name != 'AbortError')
-					{
+				}), mxUtils.bind(this, function (e) {
+					if (e.name != 'AbortError') {
 						error(e);
 					}
 				}), this.createFileSystemOptions(title));
-			}
-			else
-			{
+			} else {
 				complete();
 				this.fileCreated(new LocalFile(this, data, title, mode == null),
 					libs, replace, done, clibs, success);
@@ -6603,6 +6601,10 @@ App.prototype.getServiceForName = function(name)
 	else if (name == App.MODE_TRELLO)
 	{
 		return this.trello;
+	}
+	else if (name == App.MODE_REMOTE)
+	{
+		return this.remote;
 	}
 	else
 	{

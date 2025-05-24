@@ -6,7 +6,7 @@ RemoteFile = function(ui, data, title)
 	DrawioFile.call(this, ui, data);
 	
 	this.title = title;
-	this.mode = null;
+	this.mode = App.MODE_REMOTE;
 };
 
 //Extends mxEventSource
@@ -39,18 +39,9 @@ RemoteFile.prototype.getTitle = function()
 	return this.title;
 };
 
-/**
- * 
- */
+
 RemoteFile.prototype.isRenamable = function()
 {
 	return false;
 };
 
-/**
- */
-RemoteFile.prototype.open = function()
-{
-	this.ui.setFileData(this.getData());
-	this.installListeners();
-};

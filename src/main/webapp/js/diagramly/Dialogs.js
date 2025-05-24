@@ -5246,7 +5246,7 @@ var SaveDialog = function(editorUi, title, saveFn, disabledModes, data, mimeType
 			}
 		}
 		// 增加一个选项，保存到远端
-		addStorageEntry(App.MODE_REMOTE);
+		addStorageEntry(App.MODE_REMOTE,null,null,null,'远端');
 		// addStorageEntry(App.MODE_GOOGLE, mxResources.get('myDrive'),
 		// 	'root', null, null, 'root');
 		// addStorageEntry(App.MODE_GOOGLE, null, null, null, null, 'pick');
