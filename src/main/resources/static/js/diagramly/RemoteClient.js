@@ -30,6 +30,63 @@
      */
     RemoteClient.prototype.saveUrl = RemoteClient.prototype.baseUrl + '/saveFile';
 
+    /**
+     * 文件保存
+     *
+     * @param {number} dx X-coordinate of the translation.
+     * @param {number} dy Y-coordinate of the translation.
+     */
+    RemoteClient.prototype.saveFile = function(file, success, error, overwrite, message)
+    {
+        var org = file.meta.org;
+        var repo = file.meta.repo;
+        var ref = file.meta.ref;
+        var path = file.meta.path;
+
+        var fn = mxUtils.bind(this, function(sha, data)
+        {
+            this.writeFile(org, repo, ref, path, message, data, sha,
+                mxUtils.bind(this, function(req)
+                {
+                    delete file.meta.isNew;
+                    success(JSON.parse(req.getText()).content.sha);
+                }), mxUtils.bind(this, function(err)
+                {
+                    error(err);
+                }));
+        });
+
+        var fn2 = mxUtils.bind(this, function()
+        {
+            if (this.ui.useCanvasForExport && /(\.png)$/i.test(path))
+            {
+                var p = this.ui.getPngFileProperties(this.ui.fileNode);
+
+                this.ui.getEmbeddedPng(mxUtils.bind(this, function(data)
+                {
+                    fn(file.meta.sha, data);
+                }), error, (this.ui.getCurrentFile() != file) ?
+                    file.getData() : null, p.scale, p.border);
+            }
+            else
+            {
+                fn(file.meta.sha, Base64.encode(file.getData()));
+            }
+        });
+
+        if (overwrite)
+        {
+            this.getSha(org, repo, path, ref, mxUtils.bind(this, function(sha)
+            {
+                file.meta.sha = sha;
+                fn2();
+            }), error);
+        }
+        else
+        {
+            fn2();
+        }
+    };
 
     /**
      * 自定义错误处理，主要是获取到错误信息
@@ -76,7 +133,7 @@
 
             this.executeRequest(req, mxUtils.bind(this, function () {
                 if (req.getStatus() === 200) {
-                    success(req);
+                    success(new RemoteFile(this.ui, data, filename,fileId));
                 } else {
                     error({message: '请求远端接口失败'});
                 }
@@ -166,7 +223,7 @@
             req.setRequestHeaders = function (request, params) {
                 request.setRequestHeader('Content-Type', 'application/json');
             };
-
+            req.mode = App.MODE_REMOTE;
             req.send(mxUtils.bind(this, function () {
                 window.clearTimeout(timeoutThread);
 
@@ -277,6 +334,26 @@
                 success(req);
             }), error);
         }
+    };
+    RemoteClient.prototype.showCommitDialog = function(filename, isNew, success, cancel)
+    {
+        // Pauses spinner while commit message dialog is shown
+        var resume = this.ui.spinner.pause();
+
+        var dlg = new FilenameDialog(this.ui, mxResources.get((isNew) ? 'addedFile' : 'updateFile',
+            [filename]), mxResources.get('ok'), mxUtils.bind(this, function(message)
+        {
+            resume(function()
+            {
+                success(message);
+            });
+        }), mxResources.get('commitMessage'), null, null, null, null, mxUtils.bind(this, function()
+        {
+            cancel();
+        }));
+
+        this.ui.showDialog(dlg.container, 400, 80, true, false);
+        dlg.init();
     };
 })();
 

@@ -8,6 +8,7 @@ RemoteFile = function(ui, data, title,id)
 	this.title = title;
 	this.id = id;
 	this.mode = App.MODE_REMOTE;
+	this.peer = this.ui.remote;
 };
 
 //Extends mxEventSource
@@ -85,6 +86,13 @@ RemoteFile.prototype.doSave = function(id,title, success, error, unloading, over
 		this.saveFile(title, false, success, error, unloading, overwrite, message);
 	}), error, unloading, overwrite]);
 };
+RemoteFile.prototype.getHash = function()
+{
+	// 定制一个开头
+	return encodeURIComponent('X' + JSON.stringify([this.id, this.title]));
+};
+
+
 
 RemoteFile.prototype.saveFile = function(title, revision, success, error, unloading, overwrite, message)
 {
@@ -116,7 +124,7 @@ RemoteFile.prototype.saveFile = function(title, revision, success, error, unload
 							// Checks for changes during save
 							this.setModified(this.getShadowModified());
 							this.savingFile = false;
-							this.setDescriptorEtag(this.meta, etag);
+							this.setDescriptorEtag(this.id, etag);
 
 							this.fileSaved(savedData, savedEtag, mxUtils.bind(this, function()
 							{
@@ -204,7 +212,7 @@ RemoteFile.prototype.saveFile = function(title, revision, success, error, unload
 		}
 		else
 		{
-			this.peer.showCommitDialog(this.meta.name,
+			this.peer.showCommitDialog(this.title,
 				this.getDescriptorEtag(this.meta) == null ||
 				this.meta.isNew, mxUtils.bind(this, function(message)
 				{
