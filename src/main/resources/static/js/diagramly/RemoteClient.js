@@ -23,7 +23,7 @@
      */
     RemoteClient.prototype.baseUrl = "drawio";
 
-    RemoteClient.prototype.baseHostUrl = "后端主地址";
+    RemoteClient.prototype.baseHostUrl = "http://127.0.0.1";
 
     /**
      * 定义保存文件的URL
@@ -269,9 +269,10 @@
                     fileId: fileId,
                     fileName: fileTitle,
                     data: data,
-                    base64Encoded: !base64Encoded,
+                    base64Encoded: base64Encoded,
                 };
             const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
+            // 如果是其他类型的文件格式需要做格式转换
             this.executeRequest(req, mxUtils.bind(this, function (req) {
                 success(req);
             }), error);

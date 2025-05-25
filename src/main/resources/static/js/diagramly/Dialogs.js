@@ -4957,10 +4957,12 @@ var SaveDialog = function(editorUi, title, saveFn, disabledModes, data, mimeType
 		{
 			copyBtn = mxUtils.button(mxResources.get('copy'), function()
 			{
+				// 复制图片到系统剪贴板
 				var blob = editorUi.base64ToBlob(temp, 'image/png');
 				var html = '<img src="' + 'data:' + mimeType + ';base64,' + temp + '">';
 				var cbi = new ClipboardItem({'image/png': blob,
 					'text/html': new Blob([html], {type: 'text/html'})});
+				console.log("当前复制到粘贴板的html内容为 ",html);
 				navigator.clipboard.write([cbi]).then(mxUtils.bind(this, function()
 				{
 					editorUi.alert(mxResources.get('copiedToClipboard'));
