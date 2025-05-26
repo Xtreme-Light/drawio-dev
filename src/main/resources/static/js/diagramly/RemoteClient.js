@@ -29,6 +29,10 @@
      * 定义保存文件的URL
      */
     RemoteClient.prototype.saveUrl = RemoteClient.prototype.baseUrl + '/saveFile';
+    /**
+     * 加载远端文件
+     */
+    RemoteClient.prototype.loadUrl = RemoteClient.prototype.baseUrl + '/getFile';
 
     /**
      * 文件保存
@@ -36,54 +40,43 @@
      * @param {number} dx X-coordinate of the translation.
      * @param {number} dy Y-coordinate of the translation.
      */
-    RemoteClient.prototype.saveFile = function(file, success, error, overwrite, message)
-    {
-        var org = file.meta.org;
-        var repo = file.meta.repo;
-        var ref = file.meta.ref;
-        var path = file.meta.path;
+    RemoteClient.prototype.saveFile = function (file, success, error, overwrite, message) {
+        var fileId = file.id;
+        var fileTitle = file.title;
 
-        var fn = mxUtils.bind(this, function(sha, data)
-        {
-            this.writeFile(org, repo, ref, path, message, data, sha,
-                mxUtils.bind(this, function(req)
-                {
-                    delete file.meta.isNew;
-                    success(JSON.parse(req.getText()).content.sha);
-                }), mxUtils.bind(this, function(err)
-                {
+        var fn = mxUtils.bind(this, function (data) {
+            this.writeFile(fileId, fileTitle, true, data,
+                mxUtils.bind(this, function (req) {
+                    // console.log(JSON.parse(req.getText()));
+                    success();
+                }), mxUtils.bind(this, function (err) {
                     error(err);
-                }));
+                }), message);
         });
 
-        var fn2 = mxUtils.bind(this, function()
-        {
-            if (this.ui.useCanvasForExport && /(\.png)$/i.test(path))
-            {
+        var fn2 = mxUtils.bind(this, function () {
+            if (this.ui.useCanvasForExport && /(\.png)$/i.test(fileTitle)) {
                 var p = this.ui.getPngFileProperties(this.ui.fileNode);
 
-                this.ui.getEmbeddedPng(mxUtils.bind(this, function(data)
-                {
-                    fn(file.meta.sha, data);
+                this.ui.getEmbeddedPng(mxUtils.bind(this, function (data) {
+                    fn(data);
                 }), error, (this.ui.getCurrentFile() != file) ?
                     file.getData() : null, p.scale, p.border);
-            }
-            else
-            {
-                fn(file.meta.sha, Base64.encode(file.getData()));
+            } else {
+                fn(Base64.encode(file.getData()));
             }
         });
 
-        if (overwrite)
-        {
-            this.getSha(org, repo, path, ref, mxUtils.bind(this, function(sha)
-            {
-                file.meta.sha = sha;
-                fn2();
-            }), error);
-        }
-        else
-        {
+        if (overwrite) {
+            var req = new mxXmlRequest(this.saveUrl, JSON.stringify({
+                data: data,
+                fileId: fileId,
+                fileTitle: fileTitle,
+                fileType: 'png',
+                commitMsg: message
+            }), 'POST');
+            this.executeRequest(req, success, error);
+        } else {
             fn2();
         }
     };
@@ -116,24 +109,25 @@
      * @param folderId
      * @param base64Encoded
      */
-    RemoteClient.prototype.insertFile = function (filename, data, success, error, asLibrary = false, folderId, base64Encoded = true) {
-        const fileId = new Date().getTime();
-
+    RemoteClient.prototype.insertFile = function (title, data, success, error, asLibrary = false, folderId, base64Encoded = true, id, commitMsg) {
+        var fileId = id ? id : 'id-' + new Date().getTime().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
         if (!asLibrary) {
             // 不进行包装的时候直接进行数据传输
             // 开始构建请求
+
+
+            // 生成文件唯一ID
             const requestBody = {
-                filename: filename,
+                filename: title,
                 fileId: fileId,
                 data: data,
-                base64Encoded: false,
+                commitMsg: commitMsg
             }
-            // TODO 需要考虑如何透传一个文件的唯一ID，而是fileId
             const req = new mxXmlRequest(this.saveUrl, JSON.stringify(requestBody), 'POST');
 
             this.executeRequest(req, mxUtils.bind(this, function () {
                 if (req.getStatus() === 200) {
-                    success(new RemoteFile(this.ui, data, filename,fileId));
+                    success(new RemoteFile(this.ui, data, title, fileId));
                 } else {
                     error({message: '请求远端接口失败'});
                 }
@@ -142,10 +136,10 @@
             if (!base64Encoded) {
                 data = Base64.encode(data);
             }
-            this.writeFile(fileId, filename, base64Encoded,data, mxUtils.bind(this, function (req) {
+            this.writeFile(fileId, title, base64Encoded, data, mxUtils.bind(this, function (req) {
                 try {
                     const msg = JSON.parse(req.getText());
-                    success(this.createRemoteFile(fileId, filename,msg.content, asLibrary));
+                    success(this.createRemoteFile(fileId, title, msg.content, asLibrary));
                 } catch (e) {
                     error(e);
                 }
@@ -158,53 +152,38 @@
      *
      * @param fileId 文件ID
      * @param filename 文件名称
-     * @param data 请求体的数据
+     * @param data 返回的数据
      * @param asLibrary
      */
-    RemoteClient.prototype.createRemoteFile = function(fileId, filename,data, asLibrary)
-    {
-        console.log("当前请求获取到数据为", data);
+    RemoteClient.prototype.createRemoteFile = function (fileId, filename, data, asLibrary) {
         // TODO 需要根据导出进行调试
         const meta = {
-            id: fileId,
-            title: filename,
-            data: data,
+            id: data.fileId,
+            title: data.filename,
+            data: data.data,
         };
         var content = data.data;
-
-        if (data.encoding === 'base64')
-        {
-            if (/\.jpe?g$/i.test(data.name))
-            {
+        if (data.encoding === 'base64') {
+            if (/\.jpe?g$/i.test(data.name)) {
                 content = 'data:image/jpeg;base64,' + content;
-            }
-            else if (/\.gif$/i.test(data.name))
-            {
+            } else if (/\.gif$/i.test(data.name)) {
                 content = 'data:image/gif;base64,' + content;
-            }
-            else
-            {
-                if (/\.png$/i.test(data.name))
-                {
+            } else {
+                if (/\.png$/i.test(data.name)) {
                     var xml = this.ui.extractGraphModelFromPng(content);
 
-                    if (xml != null && xml.length > 0)
-                    {
+                    if (xml != null && xml.length > 0) {
                         content = xml;
-                    }
-                    else
-                    {
+                    } else {
                         content = 'data:image/png;base64,' + content;
                     }
-                }
-                else
-                {
+                } else {
                     content = Base64.decode(content);
                 }
             }
         }
 
-        return (asLibrary) ? new RemoteLibrary(this.ui, content, meta) : new RemoteFile(this.ui, content, filename,fileId);
+        return (asLibrary) ? new RemoteLibrary(this.ui, content, meta) : new RemoteFile(this.ui, content, filename, fileId);
     };
     /**
      * 发送请求
@@ -250,17 +229,14 @@
     };
 
     /**
-     * Checks if the client is authorized and calls the next step.
+     * 获取文件
      */
     RemoteClient.prototype.getFile = function (path, success, error, asLibrary, checkExists) {
         asLibrary = (asLibrary != null) ? asLibrary : false;
-
-        var tokens = path.split('/');
-        var org = tokens[0];
-        var repo = tokens[1];
-        var ref = tokens[2];
-        path = tokens.slice(3, tokens.length).join('/');
-        var binary = /\.png$/i.test(path);
+        var arr = JSON.parse(path);
+        var fileId = arr[0];
+        var fileName = arr[1];
+        var binary = /\.png$/i.test(fileName);
 
         // Handles .vsdx, Gliffy and PNG+XML files by creating a temporary file
         if (!checkExists && (/\.v(dx|sdx?)$/i.test(path) || /\.gliffy$/i.test(path) ||
@@ -278,33 +254,13 @@
             }
         } else {
             // Adds random parameter to bypass cache
-            var rnd = '&t=' + new Date().getTime();
-            var req = new mxXmlRequest(this.baseUrl + '/repos/' + org + '/' + repo +
-                '/contents/' + path + '?ref=' + ref + rnd, null, 'GET');
+            // var rnd = '&t=' + new Date().getTime();
+            var req = new mxXmlRequest(this.loadUrl + "?fileId=" + fileId, null, 'GET');
 
             this.executeRequest(req, mxUtils.bind(this, function (req) {
                 try {
-                    var obj = JSON.parse(req.getText());
-
-                    // Additional request needed to get file contents
-                    if (obj.content == '' && obj.git_url != null) {
-                        var contentReq = new mxXmlRequest(obj.git_url, null, 'GET');
-
-                        this.executeRequest(contentReq, mxUtils.bind(this, function (contentReq) {
-                            var contentObject = JSON.parse(contentReq.getText());
-
-                            if (contentObject.content != '') {
-                                obj.content = contentObject.content;
-                                obj.encoding = contentObject.encoding;
-
-                                success(this.createGitHubFile(org, repo, ref, obj, asLibrary));
-                            } else {
-                                error({message: mxResources.get('errorLoadingFile')});
-                            }
-                        }), error);
-                    } else {
-                        success(this.createGitHubFile(org, repo, ref, obj, asLibrary));
-                    }
+                    // 获取成功后，加载文件
+                    success(this.createRemoteFile(fileId, fileName, JSON.parse(req.getText()), false));
                 } catch (e) {
                     error(e);
                 }
@@ -314,19 +270,22 @@
     /**
      * 写入文件
      */
-    RemoteClient.prototype.writeFile = function (fileId, fileTitle,base64Encoded, data, success, error) {
+    RemoteClient.prototype.writeFile = function (fileId, fileTitle, base64Encoded, data, success, error, message) {
         if (data.length >= this.maxFileSize) {
             error({
                 message: mxResources.get('drawingTooLarge') + ' (' +
                     this.ui.formatFileSize(data.length) + ' / 1 MB)'
             });
         } else {
+
+
             const entity =
                 {
                     fileId: fileId,
                     fileName: fileTitle,
                     data: data,
-                    base64Encoded: base64Encoded,
+                    encoding: base64Encoded ? "base64" : "",
+                    commitMsg: message
                 };
             const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
             // 如果是其他类型的文件格式需要做格式转换
@@ -335,20 +294,16 @@
             }), error);
         }
     };
-    RemoteClient.prototype.showCommitDialog = function(filename, isNew, success, cancel)
-    {
+    RemoteClient.prototype.showCommitDialog = function (filename, isNew, success, cancel) {
         // Pauses spinner while commit message dialog is shown
         var resume = this.ui.spinner.pause();
 
         var dlg = new FilenameDialog(this.ui, mxResources.get((isNew) ? 'addedFile' : 'updateFile',
-            [filename]), mxResources.get('ok'), mxUtils.bind(this, function(message)
-        {
-            resume(function()
-            {
+            [filename]), mxResources.get('ok'), mxUtils.bind(this, function (message) {
+            resume(function () {
                 success(message);
             });
-        }), mxResources.get('commitMessage'), null, null, null, null, mxUtils.bind(this, function()
-        {
+        }), mxResources.get('commitMessage'), null, null, null, null, mxUtils.bind(this, function () {
             cancel();
         }));
 

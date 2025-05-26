@@ -76,14 +76,9 @@ RemoteFile.prototype.saveAs = function(id,title, success, error)
  */
 RemoteFile.prototype.doSave = function(id,title, success, error, unloading, overwrite, message)
 {
-	// Forces update of data for new extensions
-	var prev = this.meta.name;
-	this.meta.name = title;
-
 	DrawioFile.prototype.save.apply(this, [null, mxUtils.bind(this, function()
 	{
-		this.meta.name = prev;
-		this.saveFile(title, false, success, error, unloading, overwrite, message);
+		this.saveFile(id,title, false, success, error, unloading, overwrite, message);
 	}), error, unloading, overwrite]);
 };
 RemoteFile.prototype.getHash = function()
@@ -94,7 +89,7 @@ RemoteFile.prototype.getHash = function()
 
 
 
-RemoteFile.prototype.saveFile = function(title, revision, success, error, unloading, overwrite, message)
+RemoteFile.prototype.saveFile = function(id,revision, success, error, unloading, overwrite, message)
 {
 	if (!this.isEditable())
 	{
@@ -105,9 +100,10 @@ RemoteFile.prototype.saveFile = function(title, revision, success, error, unload
 	}
 	else if (!this.savingFile)
 	{
+		// 重复保存逻辑
 		var doSave = mxUtils.bind(this, function(message)
 		{
-			if (this.getTitle() == title)
+			if (this.getTitle() == id)
 			{
 				try
 				{
@@ -181,7 +177,7 @@ RemoteFile.prototype.saveFile = function(title, revision, success, error, unload
 
 				this.ui.pickFolder(this.getMode(), mxUtils.bind(this, function(folderId)
 				{
-					this.peer.insertFile(title, this.getData(), mxUtils.bind(this, function(file)
+					this.peer.insertFile(this.getTitle(), this.getData(), mxUtils.bind(this, function(file)
 					{
 						// Checks for changes during save
 						this.setModified(this.getShadowModified());
@@ -189,7 +185,11 @@ RemoteFile.prototype.saveFile = function(title, revision, success, error, unload
 
 						if (success != null)
 						{
-							success();
+							if (typeof success === 'function') {
+								success();
+							}else{
+								error("插入文件失败");
+							}
 						}
 
 						this.ui.fileLoaded(file);
@@ -201,7 +201,7 @@ RemoteFile.prototype.saveFile = function(title, revision, success, error, unload
 						{
 							error();
 						}
-					}), false, folderId, message);
+					}), false, folderId, false,this.getId(),message);
 				}));
 			}
 		});
