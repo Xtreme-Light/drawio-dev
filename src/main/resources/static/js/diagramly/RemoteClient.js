@@ -23,22 +23,18 @@
      */
     RemoteClient.prototype.baseUrl = "/drawio";
 
-    RemoteClient.prototype.baseHostUrl = "http://127.0.0.1:8080";
-
-    /**
+   /**
      * 定义保存文件的URL
      */
-    RemoteClient.prototype.saveUrl = RemoteClient.prototype.baseUrl + '/saveFile';
+    RemoteClient.prototype.saveUrl = RemoteClient.prototype.baseUrl + '/drawio/saveFile';
     /**
      * 加载远端文件
      */
-    RemoteClient.prototype.loadUrl = RemoteClient.prototype.baseUrl + '/getFile';
+    RemoteClient.prototype.loadUrl = RemoteClient.prototype.baseUrl + '/drawio/getFile';
 
     /**
      * 文件保存
      *
-     * @param {number} dx X-coordinate of the translation.
-     * @param {number} dy Y-coordinate of the translation.
      */
     RemoteClient.prototype.saveFile = function (file, success, error, overwrite, message) {
         var fileId = file.id;

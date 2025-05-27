@@ -6,5 +6,5 @@ import lombok.Data;
 public class RetBean {
     private String code = "200";
     private String msg;
-    private String data;
+    private Object data;
 }

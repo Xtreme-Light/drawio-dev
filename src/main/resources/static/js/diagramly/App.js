@@ -631,7 +631,7 @@ App.main = function (callback, createUi) {
                 if (bootstrap != null) {
                     var content = mxUtils.getTextContent(bootstrap);
 
-                    if (CryptoJS.MD5(content).toString() != '2f4968f0deb7b87ea8bd51b50bcd6224') {
+                    if (CryptoJS.MD5(content).toString() != '06836f7b03b0e236545e4d26c6bcd624') {
                         console.log('Change bootstrap script MD5 in the previous line:', CryptoJS.MD5(content).toString());
                         alert('[Dev] Bootstrap script change requires update of CSP');
                     }
@@ -1545,8 +1545,8 @@ App.refreshConfig = function () {
                     if (resp) {
                         const response = JSON.parse(resp);
                         if (response.code === '200') {
-                            mxLog.show();
-                            mxLog.info("获取配置成功，开始加载请求");
+                            console.info("请求成功开始加载配置")
+                            window.DRAWIO_CONFIG = response.data;
                             Editor.configure(window.DRAWIO_CONFIG);
                             mxSettings.load();
                         } else {
@@ -1557,7 +1557,7 @@ App.refreshConfig = function () {
                     }
                 } else {
                     throw new Error(this.getErrorMessage(req,
-                        mxResources.get('error') + ' 加载配置发生错误' + response.msg)
+                        mxResources.get('error') + ' 加载配置发生错误')
                     );
                 }
             }

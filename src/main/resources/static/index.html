@@ -188,7 +188,9 @@
 			  	
 			  	if (t != null)
 			  	{
-			  		t.parentNode.insertBefore(s, t);
+					if (s.src && /(undefined)$/i.test(s.src)) {
+						t.parentNode.insertBefore(s, t);
+					}
 			  	}
 			}
 			else
