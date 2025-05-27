@@ -3018,97 +3018,97 @@
 				}, true);
 			};
 		
-			if (typeof(google) != 'undefined' && typeof(google.picker) != 'undefined')
-			{
-				if (editorUi.drive != null)
-				{
-					// Requires special arguments for libraries and realtime
-					menu.addItem(mxResources.get('googleDrive') + '...', null, function()
-					{
-						pickFileFromService(editorUi.drive);
-					}, parent);
-				}
-				else if (editorUi.isModeEnabled(App.MODE_GOOGLE))
-				{
-					menu.addItem(mxResources.get('googleDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
-					{
-						// do nothing
-					}, parent, null, false);
-				}
-			}
-
-			if (editorUi.isModeReady(App.MODE_ONEDRIVE))
-			{
-				menu.addItem(mxResources.get('oneDrive') + '...', null, function()
-				{
-					pickFileFromService(editorUi.oneDrive);
-				}, parent);
-			}
-			else if (editorUi.isModeEnabled(App.MODE_ONEDRIVE))
-			{
-				menu.addItem(mxResources.get('oneDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
-				{
-					// do nothing
-				}, parent, null, false);
-			}
-
-			if (editorUi.isModeReady(App.MODE_DROPBOX))
-			{
-				menu.addItem(mxResources.get('dropbox') + '...', null, function()
-				{
-					pickFileFromService(editorUi.dropbox);
-				}, parent);
-			}
-			else if (editorUi.isModeEnabled(App.MODE_DROPBOX))
-			{
-				menu.addItem(mxResources.get('dropbox') + ' (' + mxResources.get('loading') + '...)', null, function()
-				{
-					// do nothing
-				}, parent, null, false);
-			}
+			// if (typeof(google) != 'undefined' && typeof(google.picker) != 'undefined')
+			// {
+			// 	if (editorUi.drive != null)
+			// 	{
+			// 		// Requires special arguments for libraries and realtime
+			// 		menu.addItem(mxResources.get('googleDrive') + '...', null, function()
+			// 		{
+			// 			pickFileFromService(editorUi.drive);
+			// 		}, parent);
+			// 	}
+			// 	else if (editorUi.isModeEnabled(App.MODE_GOOGLE))
+			// 	{
+			// 		menu.addItem(mxResources.get('googleDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
+			// 		{
+			// 			// do nothing
+			// 		}, parent, null, false);
+			// 	}
+			// }
+			//
+			// if (editorUi.isModeReady(App.MODE_ONEDRIVE))
+			// {
+			// 	menu.addItem(mxResources.get('oneDrive') + '...', null, function()
+			// 	{
+			// 		pickFileFromService(editorUi.oneDrive);
+			// 	}, parent);
+			// }
+			// else if (editorUi.isModeEnabled(App.MODE_ONEDRIVE))
+			// {
+			// 	menu.addItem(mxResources.get('oneDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
+			// 	{
+			// 		// do nothing
+			// 	}, parent, null, false);
+			// }
+			//
+			// if (editorUi.isModeReady(App.MODE_DROPBOX))
+			// {
+			// 	menu.addItem(mxResources.get('dropbox') + '...', null, function()
+			// 	{
+			// 		pickFileFromService(editorUi.dropbox);
+			// 	}, parent);
+			// }
+			// else if (editorUi.isModeEnabled(App.MODE_DROPBOX))
+			// {
+			// 	menu.addItem(mxResources.get('dropbox') + ' (' + mxResources.get('loading') + '...)', null, function()
+			// 	{
+			// 		// do nothing
+			// 	}, parent, null, false);
+			// }
 			
-			menu.addSeparator(parent);
+			// menu.addSeparator(parent);
 			
-			if (editorUi.isModeReady(App.MODE_GITHUB))
-			{
-				menu.addItem(mxResources.get('github') + '...', null, function()
-				{
-					pickFileFromService(editorUi.gitHub);
-				}, parent);
-			}
+			// if (editorUi.isModeReady(App.MODE_GITHUB))
+			// {
+			// 	menu.addItem(mxResources.get('github') + '...', null, function()
+			// 	{
+			// 		pickFileFromService(editorUi.gitHub);
+			// 	}, parent);
+			// }
+			//
+			// if (editorUi.isModeReady(App.MODE_GITLAB))
+			// {
+			// 	menu.addItem(mxResources.get('gitlab') + '...', null, function()
+			// 	{
+			// 		pickFileFromService(editorUi.gitLab);
+			// 	}, parent);
+			// }
+			//
+			// if (editorUi.isModeReady(App.MODE_TRELLO))
+			// {
+			// 	menu.addItem(mxResources.get('trello') + '...', null, function()
+			// 	{
+			// 		pickFileFromService(editorUi.trello);
+			// 	}, parent);
+			// }
+			// else if (editorUi.isModeEnabled(App.MODE_TRELLO))
+			// {
+			// 	menu.addItem(mxResources.get('trello') + ' (' + mxResources.get('loading') + '...)', null, function()
+			// 	{
+			// 		// do nothing
+			// 	}, parent, null, false);
+			// }
 			
-			if (editorUi.isModeReady(App.MODE_GITLAB))
-			{
-				menu.addItem(mxResources.get('gitlab') + '...', null, function()
-				{
-					pickFileFromService(editorUi.gitLab);
-				}, parent);
-			}
-
-			if (editorUi.isModeReady(App.MODE_TRELLO))
-			{
-				menu.addItem(mxResources.get('trello') + '...', null, function()
-				{
-					pickFileFromService(editorUi.trello);
-				}, parent);
-			}
-			else if (editorUi.isModeEnabled(App.MODE_TRELLO))
-			{
-				menu.addItem(mxResources.get('trello') + ' (' + mxResources.get('loading') + '...)', null, function()
-				{
-					// do nothing
-				}, parent, null, false);
-			}
-			
-			menu.addSeparator(parent);
-
-			if (isLocalStorage && urlParams['browser'] != '0')
-			{
-				menu.addItem(mxResources.get('browser') + '...', null, function()
-				{
-					editorUi.importLocalFile(false);
-				}, parent);
-			}
+			// menu.addSeparator(parent);
+			//
+			// if (isLocalStorage && urlParams['browser'] != '0')
+			// {
+			// 	menu.addItem(mxResources.get('browser') + '...', null, function()
+			// 	{
+			// 		editorUi.importLocalFile(false);
+			// 	}, parent);
+			// }
 
 			if (urlParams['noDevice'] != '1')
 			{
@@ -4117,86 +4117,86 @@
 	
 			this.put('openLibraryFrom', new Menu(function(menu, parent)
 			{
-				if (typeof(google) != 'undefined' && typeof(google.picker) != 'undefined')
-				{
-					if (editorUi.drive != null)
-					{
-						menu.addItem(mxResources.get('googleDrive') + '...', null, function()
-						{
-							editorUi.pickLibrary(App.MODE_GOOGLE);
-						}, parent);
-					}
-					else if (editorUi.isModeEnabled(App.MODE_GOOGLE))
-					{
-						menu.addItem(mxResources.get('googleDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
-						{
-							// do nothing
-						}, parent, null, false);
-					}
-				}
+				// if (typeof(google) != 'undefined' && typeof(google.picker) != 'undefined')
+				// {
+				// 	if (editorUi.drive != null)
+				// 	{
+				// 		menu.addItem(mxResources.get('googleDrive') + '...', null, function()
+				// 		{
+				// 			editorUi.pickLibrary(App.MODE_GOOGLE);
+				// 		}, parent);
+				// 	}
+				// 	else if (editorUi.isModeEnabled(App.MODE_GOOGLE))
+				// 	{
+				// 		menu.addItem(mxResources.get('googleDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
+				// 		{
+				// 			// do nothing
+				// 		}, parent, null, false);
+				// 	}
+				// }
 
-				if (editorUi.isModeReady(App.MODE_ONEDRIVE))
-				{
-					menu.addItem(mxResources.get('oneDrive') + '...', null, function()
-					{
-						editorUi.pickLibrary(App.MODE_ONEDRIVE);
-					}, parent);
-				}
-				else if (editorUi.isModeEnabled(App.MODE_ONEDRIVE))
-				{
-					menu.addItem(mxResources.get('oneDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
-					{
-						// do nothing
-					}, parent, null, false);
-				}
+				// if (editorUi.isModeReady(App.MODE_ONEDRIVE))
+				// {
+				// 	menu.addItem(mxResources.get('oneDrive') + '...', null, function()
+				// 	{
+				// 		editorUi.pickLibrary(App.MODE_ONEDRIVE);
+				// 	}, parent);
+				// }
+				// else if (editorUi.isModeEnabled(App.MODE_ONEDRIVE))
+				// {
+				// 	menu.addItem(mxResources.get('oneDrive') + ' (' + mxResources.get('loading') + '...)', null, function()
+				// 	{
+				// 		// do nothing
+				// 	}, parent, null, false);
+				// }
 
-				if (editorUi.isModeReady(App.MODE_DROPBOX))
-				{
-					menu.addItem(mxResources.get('dropbox') + '...', null, function()
-					{
-						editorUi.pickLibrary(App.MODE_DROPBOX);
-					}, parent);
-				}
-				else if (editorUi.isModeEnabled(App.MODE_DROPBOX))
-				{
-					menu.addItem(mxResources.get('dropbox') + ' (' + mxResources.get('loading') + '...)', null, function()
-					{
-						// do nothing
-					}, parent, null, false);
-				}
+				// if (editorUi.isModeReady(App.MODE_DROPBOX))
+				// {
+				// 	menu.addItem(mxResources.get('dropbox') + '...', null, function()
+				// 	{
+				// 		editorUi.pickLibrary(App.MODE_DROPBOX);
+				// 	}, parent);
+				// }
+				// else if (editorUi.isModeEnabled(App.MODE_DROPBOX))
+				// {
+				// 	menu.addItem(mxResources.get('dropbox') + ' (' + mxResources.get('loading') + '...)', null, function()
+				// 	{
+				// 		// do nothing
+				// 	}, parent, null, false);
+				// }
 				
-				menu.addSeparator(parent);
+				// menu.addSeparator(parent);
 				
-				if (editorUi.isModeReady(App.MODE_GITHUB))
-				{
-					menu.addItem(mxResources.get('github') + '...', null, function()
-					{
-						editorUi.pickLibrary(App.MODE_GITHUB);
-					}, parent);
-				}
+				// if (editorUi.isModeReady(App.MODE_GITHUB))
+				// {
+				// 	menu.addItem(mxResources.get('github') + '...', null, function()
+				// 	{
+				// 		editorUi.pickLibrary(App.MODE_GITHUB);
+				// 	}, parent);
+				// }
 				
-				if (editorUi.isModeReady(App.MODE_GITLAB))
-				{
-					menu.addItem(mxResources.get('gitlab') + '...', null, function()
-					{
-						editorUi.pickLibrary(App.MODE_GITLAB);
-					}, parent);
-				}
-
-				if (editorUi.isModeReady(App.MODE_TRELLO))
-				{
-					menu.addItem(mxResources.get('trello') + '...', null, function()
-					{
-						editorUi.pickLibrary(App.MODE_TRELLO);
-					}, parent);
-				}
-				else if (editorUi.isModeEnabled(App.MODE_TRELLO))
-				{
-					menu.addItem(mxResources.get('trello') + ' (' + mxResources.get('loading') + '...)', null, function()
-					{
-						// do nothing
-					}, parent, null, false);
-				}
+				// if (editorUi.isModeReady(App.MODE_GITLAB))
+				// {
+				// 	menu.addItem(mxResources.get('gitlab') + '...', null, function()
+				// 	{
+				// 		editorUi.pickLibrary(App.MODE_GITLAB);
+				// 	}, parent);
+				// }
+				//
+				// if (editorUi.isModeReady(App.MODE_TRELLO))
+				// {
+				// 	menu.addItem(mxResources.get('trello') + '...', null, function()
+				// 	{
+				// 		editorUi.pickLibrary(App.MODE_TRELLO);
+				// 	}, parent);
+				// }
+				// else if (editorUi.isModeEnabled(App.MODE_TRELLO))
+				// {
+				// 	menu.addItem(mxResources.get('trello') + ' (' + mxResources.get('loading') + '...)', null, function()
+				// 	{
+				// 		// do nothing
+				// 	}, parent, null, false);
+				// }
 				
 				menu.addSeparator(parent);
 	
@@ -5190,18 +5190,19 @@
 				}
 				else
 				{
-					if (!mxClient.IS_CHROMEAPP && !EditorUi.isElectronApp &&
-						file != null && (file.constructor != LocalFile ||
-						file.fileHandle != null))
-					{	
-						menu.addSeparator(parent);
-						var item = this.addMenuItem(menu, 'synchronize', parent);
-						
-						if (!editorUi.isOffline() || mxClient.IS_CHROMEAPP || EditorUi.isElectronApp)
-						{
-							this.addLinkToItem(item, 'https://www.drawio.com/doc/faq/synchronize');
-						}
-					}
+					// 隐藏同步按钮
+					// if (!mxClient.IS_CHROMEAPP && !EditorUi.isElectronApp &&
+					// 	file != null && (file.constructor != LocalFile ||
+					// 	file.fileHandle != null))
+					// {
+					// 	menu.addSeparator(parent);
+					// 	var item = this.addMenuItem(menu, 'synchronize', parent);
+					//
+					// 	if (!editorUi.isOffline() || mxClient.IS_CHROMEAPP || EditorUi.isElectronApp)
+					// 	{
+					// 		this.addLinkToItem(item, 'https://www.drawio.com/doc/faq/synchronize');
+					// 	}
+					// }
 					
 					this.addMenuItems(menu, ['-', 'save', 'saveAs', '-'], parent);
 					
