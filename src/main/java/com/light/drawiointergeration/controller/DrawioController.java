@@ -35,5 +35,9 @@ public class DrawioController {
         private String encoding;
         private String data;
         private String commitMsg;
+        /**
+         * 文件类型
+         */
+        private String mimeType;
     }
 }

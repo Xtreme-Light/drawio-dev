@@ -97,8 +97,11 @@ Actions.prototype.init = function()
 			window.openFile = null;
 		});
 	}).isEnabled = isGraphEnabled;
+	// 保存绑定事件
 	this.addAction('save', function() { ui.saveFile(false); }, null, null, Editor.ctrlKey + '+S').isEnabled = isGraphEnabled;
+	// 另存为绑定事件
 	this.addAction('saveAs...', function() { ui.saveFile(true); }, null, null, Editor.ctrlKey + '+Shift+S');
+	// 导出绑定事件
 	this.addAction('export...', function() { ui.showDialog(new ExportDialog(ui).container, 300, 340, true, true); });
 	this.addAction('editDiagram...', function()
 	{

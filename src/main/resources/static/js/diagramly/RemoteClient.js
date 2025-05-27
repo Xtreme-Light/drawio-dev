@@ -21,9 +21,9 @@
     /**
      * 后端api基础地址
      */
-    RemoteClient.prototype.baseUrl = "drawio";
+    RemoteClient.prototype.baseUrl = "/drawio";
 
-    RemoteClient.prototype.baseHostUrl = "http://127.0.0.1";
+    RemoteClient.prototype.baseHostUrl = "http://127.0.0.1:8080";
 
     /**
      * 定义保存文件的URL
@@ -45,9 +45,8 @@
         var fileTitle = file.title;
 
         var fn = mxUtils.bind(this, function (data) {
-            this.writeFile(fileId, fileTitle, false, data,
+            this.writeFile(fileId, fileTitle, true, data,
                 mxUtils.bind(this, function (req) {
-                    // console.log(JSON.parse(req.getText()));
                     success();
                 }), mxUtils.bind(this, function (err) {
                     error(err);
@@ -70,7 +69,7 @@
         });
 
         if (overwrite) {
-            var req = new mxXmlRequest(this.saveUrl, JSON.stringify({
+            var req = new mxXmlRequest(this.baseHostUrl + this.saveUrl, JSON.stringify({
                 data: data,
                 fileId: fileId,
                 fileTitle: fileTitle,
@@ -111,15 +110,15 @@
      * @param folderId
      * @param base64Encoded
      */
-    RemoteClient.prototype.insertFile = function (title, data, success, error, asLibrary = false, folderId, base64Encoded = true, id, commitMsg,mimeType) {
+    RemoteClient.prototype.insertFile = function (title, data, success, error, asLibrary = false, folderId, base64Encoded = false, id, commitMsg, mimeType) {
         var fileId;
         if (id) {
             fileId = id;
-        }else {
+        } else {
             var localFileId = localStorage.getItem("_fileId");
             if (localFileId) {
                 fileId = localFileId;
-            }else {
+            } else {
                 fileId = 'id-' + new Date().getTime().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
                 localStorage.setItem("_fileId", fileId);
             }
@@ -143,10 +142,10 @@
                     error({message: '请求远端接口失败'});
                 }
             }), error);
-        } else {
-            if (!base64Encoded) {
-                data = Base64.encode(data);
-            }
+            // 默认不再进行base64加密，除非是png，svg这种类型
+            // if (!base64Encoded) {
+            //     data = Base64.encode(data);
+            // }
             this.writeFile(fileId, title, base64Encoded, data, mxUtils.bind(this, function (req) {
                 try {
                     const msg = JSON.parse(req.params);
@@ -154,7 +153,7 @@
                 } catch (e) {
                     error(e);
                 }
-            }), error,commitMsg,mimeType);
+            }), error, commitMsg, mimeType);
         }
 
     };
@@ -168,12 +167,12 @@
      * @param base64Encoded 是否base64加密
      */
     RemoteClient.prototype.createRemoteFile = function (fileId, filename, params, asLibrary) {
-        // TODO 需要根据导出进行调试
         const meta = {
             id: params.fileId,
             title: params.fileName,
             data: params.data,
         };
+        EditorUi.debug('创建远端文件', params);
         var content = params.data;
         if (params.encoding == 'base64') {
             if (/\.jpe?g$/i.test(params.fileName)) {
@@ -194,6 +193,8 @@
                 }
             }
         }
+        EditorUi.debug('创建' + (asLibrary) ? 'library' : 'file');
+
         return (asLibrary) ? new RemoteLibrary(this.ui, content, meta) : new RemoteFile(this.ui, content, filename, fileId);
     };
     /**
@@ -209,11 +210,9 @@
                 error({code: App.ERROR_TIMEOUT, message: mxResources.get('timeout')});
             }), this.ui.timeout);
 
-            // TODO 设置请求头
             req.setRequestHeaders = function (request, params) {
                 request.setRequestHeader('Content-Type', 'application/json');
             };
-            req.mode = App.MODE_REMOTE;
             req.send(mxUtils.bind(this, function () {
                 window.clearTimeout(timeoutThread);
 
@@ -270,14 +269,14 @@
         } else {
             // Adds random parameter to bypass cache
             // var rnd = '&t=' + new Date().getTime();
-            var req = new mxXmlRequest(this.loadUrl + "?fileId=" + fileId, null, 'GET');
+            var req = new mxXmlRequest(this.baseHostUrl + this.loadUrl + "?fileId=" + fileId, null, 'GET');
 
             this.executeRequest(req, mxUtils.bind(this, function (req) {
                 try {
                     // 获取成功后，加载文件
                     if (req.getText()) {
                         success(this.createRemoteFile(fileId, fileName, JSON.parse(req.getText()), false));
-                    }else {
+                    } else {
                         error({message: '根据{' + fileId + '}加载数据为空'});
                     }
                 } catch (e) {
@@ -289,7 +288,7 @@
     /**
      * 写入文件
      */
-    RemoteClient.prototype.writeFile = function (fileId, fileTitle, base64Encoded, data, success, error, message,mimeType) {
+    RemoteClient.prototype.writeFile = function (fileId, fileTitle, base64Encoded, data, success, error, message, mimeType) {
         if (data.length >= this.maxFileSize) {
             error({
                 message: mxResources.get('drawingTooLarge') + ' (' +
@@ -303,7 +302,7 @@
                     data: data,
                     encoding: base64Encoded ? "base64" : "",
                     commitMsg: message,
-                    mimeType:mimeType
+                    mimeType: mimeType
                 };
             const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
             // 如果是其他类型的文件格式需要做格式转换

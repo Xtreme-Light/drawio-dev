@@ -277,7 +277,7 @@
 	{
 		try
 		{
-			if (window.console != null && urlParams['test'] == '1')
+			if (window.console != null && urlParams['debug'] == '1')
 			{
 				var args = [new Date().toISOString()];
 				

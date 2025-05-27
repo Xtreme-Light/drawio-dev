@@ -5204,7 +5204,7 @@ App.prototype.save = function (name, done) {
             if (name == file.getTitle()) {
                 file.save(true, success, error);
             } else {
-                file.saveAs(name, success, error)
+                file.saveAs(null,name, success, error)
             }
         } catch (err) {
             error(err);

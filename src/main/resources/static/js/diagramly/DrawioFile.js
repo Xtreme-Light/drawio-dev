@@ -1408,7 +1408,7 @@ DrawioFile.prototype.setData = function(data)
 {
 	this.data = data;
 
-	EditorUi.debug('DrawioFile.setData',
+	EditorUi.debug('DrawioFile 设置data',
 		[this], 'data', [data]);
 };
 
@@ -1446,6 +1446,7 @@ DrawioFile.prototype.open = function()
 	
 	if (data != null)
 	{
+		EditorUi.debug("打开数据", data);
 		this.ui.setFileData(data);
 		
 		// Updates shadow in case any page IDs have been updated

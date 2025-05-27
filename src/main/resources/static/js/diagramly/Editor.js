@@ -2558,13 +2558,14 @@
 	Editor.prototype.appName = 'draw.io';
 		
 	/**
-	 * Known file types.
+	 * Known file types. 先禁止其他的文件类型，只保留xml类型
 	 */
 	Editor.prototype.diagramFileTypes = [
 		{description: 'diagramXmlDesc', extension: 'drawio', mimeType: 'text/xml'},
-		{description: 'diagramPngDesc', extension: 'png', mimeType: 'image/png'},
-		{description: 'diagramSvgDesc', extension: 'svg', mimeType: 'image/svg'},
-		{description: 'diagramHtmlDesc', extension: 'html', mimeType: 'text/html'}];
+		// {description: 'diagramPngDesc', extension: 'png', mimeType: 'image/png'},
+		// {description: 'diagramSvgDesc', extension: 'svg', mimeType: 'image/svg'},
+		// {description: 'diagramHtmlDesc', extension: 'html', mimeType: 'text/html'},
+	];
 	
 	/**
 	 * Known file types.
