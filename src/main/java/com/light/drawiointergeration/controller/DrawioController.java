@@ -20,7 +20,7 @@ public class DrawioController {
     }
 
     @GetMapping("/drawio/getFile")
-    public DrawioFile getFile(@RequestParam("fileId") Long fileId) {
+    public DrawioFile getFile(@RequestParam("fileId") String fileId) {
         return data.get(fileId);
     }
 

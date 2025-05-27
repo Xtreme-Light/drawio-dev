@@ -45,7 +45,7 @@
         var fileTitle = file.title;
 
         var fn = mxUtils.bind(this, function (data) {
-            this.writeFile(fileId, fileTitle, true, data,
+            this.writeFile(fileId, fileTitle, false, data,
                 mxUtils.bind(this, function (req) {
                     // console.log(JSON.parse(req.getText()));
                     success();
@@ -63,7 +63,9 @@
                 }), error, (this.ui.getCurrentFile() != file) ?
                     file.getData() : null, p.scale, p.border);
             } else {
-                fn(Base64.encode(file.getData()));
+                // 不进行base64加密
+                // fn(Base64.encode(file.getData()));
+                fn(file.getData());
             }
         });
 

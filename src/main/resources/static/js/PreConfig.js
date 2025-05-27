@@ -46,17 +46,18 @@ window.DRAWIO_CONFIG = {
                             },
                             "data": [
                                 {
-                                    "xml": "<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><mxCell id=\"2\" value=\"新增业务\" style=\"rounded=1;whiteSpace=wrap;html=1;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"60\" as=\"geometry\"/></mxCell></root></mxGraphModel>",
+                                    "xml": "<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><mxCell id=\"2\" archId=\"B20250527\" archType='业务'  value=\"新增业务\" style=\"rounded=1;whiteSpace=wrap;html=1;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"60\" as=\"geometry\"/></mxCell></root></mxGraphModel>",
                                     "w": 120,
                                     "h": 60,
                                     "aspect": "fixed",
-                                    "title": "第二个"
+                                    "title": "新增业务"
                                 },
                                 {
-                                    "xml": "<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><mxCell id=\"2\" value=\"Text\" style=\"text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"60\" height=\"30\" as=\"geometry\"/></mxCell></root></mxGraphModel>",
-                                    "w": 60,
-                                    "h": 30,
-                                    "title": "第三个"
+                                    "xml": "<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><mxCell id=\"2\" archId=\"B20250527\" archType='能力'  value=\"新增能力\" style=\"rounded=1;whiteSpace=wrap;html=1;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"60\" as=\"geometry\"/></mxCell></root></mxGraphModel>",
+                                    "w": 120,
+                                    "h": 60,
+                                    "aspect": "fixed",
+                                    "title": "新增能力"
                                 }
                             ]
                         }
