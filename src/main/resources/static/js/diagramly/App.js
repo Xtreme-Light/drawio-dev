@@ -1008,6 +1008,7 @@ App.main = function (callback, createUi) {
         };
 
         // Sends load event if configuration is requested and waits for configure message
+        // 加载configure的配置
         if (urlParams['configure'] == '1') {
             var op = window.opener || window.parent;
 
@@ -1041,45 +1042,7 @@ App.main = function (callback, createUi) {
             op.postMessage(JSON.stringify({event: 'configure'}), '*');
         } else {
             if (Editor.config == null) {
-                // Loads configuration from global scope or local storage
-                if (window.DRAWIO_CONFIG != null) {
-                    try {
-                        EditorUi.debug('Using global configuration', window.DRAWIO_CONFIG);
-                        Editor.configure(window.DRAWIO_CONFIG);
-                        mxSettings.load();
-                    } catch (e) {
-                        if (window.console != null && !EditorUi.isElectronApp) {
-                            console.error(e);
-                        } else {
-                            mxLog.show();
-                            mxLog.debug(e.stack);
-                        }
-                    }
-                }
-
-                // Loads configuration from local storage
-                if (isLocalStorage && localStorage != null && urlParams['embed'] != '1') {
-                    var configData = localStorage.getItem(Editor.configurationKey);
-
-                    if (configData != null) {
-                        try {
-                            configData = JSON.parse(configData);
-
-                            if (configData != null) {
-                                EditorUi.debug('Using local configuration', configData);
-                                Editor.configure(configData);
-                                mxSettings.load();
-                            }
-                        } catch (e) {
-                            if (window.console != null && !EditorUi.isElectronApp) {
-                                console.error(e);
-                            } else {
-                                mxLog.show();
-                                mxLog.debug(e.stack);
-                            }
-                        }
-                    }
-                }
+                App.refreshConfig()
             }
 
             doMain();
@@ -1557,6 +1520,64 @@ App.prototype.init = function () {
         this.initializeViewerMode();
     }
 };
+// 刷新配置,动态加载配置
+App.refreshConfig = function () {
+    //     发送请求加载全局配置
+
+    const req = new mxXmlRequest('/drawio/drawio/config', null, 'GET');
+
+    try {
+        let acceptResponse = true;
+        // 设置调用超时时长
+        const timeoutThread = window.setTimeout(mxUtils.bind(this, function () {
+            acceptResponse = false;
+            console.error("请求加载配置超时");
+        }), 3000);
+
+        req.setRequestHeaders = function (request, params) {
+            request.setRequestHeader('Content-Type', 'application/json');
+        };
+        req.send(mxUtils.bind(this, function () {
+            window.clearTimeout(timeoutThread);
+            if (acceptResponse) {
+                if ((req.getStatus() >= 200 && req.getStatus() <= 299)) {
+                    const resp = req.getText();
+                    if (resp) {
+                        const response = JSON.parse(resp);
+                        if (response.code === '200') {
+                            mxLog.show();
+                            mxLog.info("获取配置成功，开始加载请求");
+                            Editor.configure(window.DRAWIO_CONFIG);
+                            mxSettings.load();
+                        } else {
+                            throw new Error(this.getErrorMessage(req,
+                                mxResources.get('error') + ' 加载配置发生错误' + response.msg)
+                            );
+                        }
+                    }
+                } else {
+                    throw new Error(this.getErrorMessage(req,
+                        mxResources.get('error') + ' 加载配置发生错误' + response.msg)
+                    );
+                }
+            }
+        }), mxUtils.bind(this, function (err) {
+            window.clearTimeout(timeoutThread);
+            if (acceptResponse) {
+                throw err;
+            }
+        }));
+
+    } catch (e) {
+        if (window.console != null && !EditorUi.isElectronApp) {
+            console.error(e);
+        } else {
+            mxLog.show();
+            mxLog.debug(e.stack);
+        }
+    }
+};
+
 
 App.blockedAncestorFrames = function () {
     try {
@@ -5204,7 +5225,7 @@ App.prototype.save = function (name, done) {
             if (name == file.getTitle()) {
                 file.save(true, success, error);
             } else {
-                file.saveAs(null,name, success, error)
+                file.saveAs(null, name, success, error)
             }
         } catch (err) {
             error(err);
@@ -5410,7 +5431,7 @@ App.prototype.exportFile = function (data, filename, mimeType, base64Encoded, mo
             }), mxUtils.bind(this, function (resp) {
                 this.spinner.stop();
                 this.handleError(resp);
-            }), true, folderId, base64Encoded, null,'导出文件',mimeType);
+            }), true, folderId, base64Encoded, null, '导出文件', mimeType);
         }
     }
 };
