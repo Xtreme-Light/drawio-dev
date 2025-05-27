@@ -5227,7 +5227,7 @@
 					}
 					else
 					{
-						this.addMenuItems(menu, ['makeCopy'], parent);
+						// this.addMenuItems(menu, ['makeCopy'], parent);
 
 						if (file != null)
 						{
