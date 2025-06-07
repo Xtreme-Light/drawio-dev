@@ -19,6 +19,7 @@ public class DrawioController {
     @PostMapping("/saveFile")
     public void saveFile(@RequestBody DrawioFile drawioFile) {
         log.info("接收到保存文件请求 {}", drawioFile);
+
         data.put(drawioFile.getFileId(), drawioFile);
     }
 
@@ -32,7 +33,6 @@ public class DrawioController {
     public static class DrawioFile {
         private String fileId;
         private String fileName;
-        private String fileType;
         /**
          * base64 ?
          */
@@ -40,9 +40,10 @@ public class DrawioController {
         private String data;
         private String commitMsg;
         /**
-         * 文件类型
+         * 分享的url
          */
-        private String mimeType;
+        private String shareUrl;
+
     }
 
     @GetMapping("/config")

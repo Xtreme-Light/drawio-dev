@@ -228,7 +228,8 @@
                     fileName: fileTitle,
                     data: data,
                     commitMsg: commitMsg,
-                    encoding: encoding
+                    encoding: encoding,
+                    shareUrl:(window.location.href.indexOf('#')>0)?window.location.href:null
                 };
             const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
             // 如果是其他类型的文件格式需要做格式转换
