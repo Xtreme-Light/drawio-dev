@@ -21,9 +21,9 @@
     /**
      * 后端api基础地址
      */
-    RemoteClient.prototype.baseUrl = "/drawio";
+    RemoteClient.prototype.baseUrl = "";
 
-   /**
+    /**
      * 定义保存文件的URL
      */
     RemoteClient.prototype.saveUrl = RemoteClient.prototype.baseUrl + '/drawio/saveFile';
@@ -41,9 +41,9 @@
         var fileTitle = file.title;
 
         var fn = mxUtils.bind(this, function (data) {
-            this.writeFile(fileId, fileTitle, true, data,
+            this.writeFile(fileId, fileTitle, data,
                 mxUtils.bind(this, function (req) {
-                    success();
+                    success(req);
                 }), mxUtils.bind(this, function (err) {
                     error(err);
                 }), message);
@@ -65,14 +65,7 @@
         });
 
         if (overwrite) {
-            var req = new mxXmlRequest(this.baseHostUrl + this.saveUrl, JSON.stringify({
-                data: data,
-                fileId: fileId,
-                fileTitle: fileTitle,
-                fileType: 'png',
-                commitMsg: message
-            }), 'POST');
-            this.executeRequest(req, success, error);
+            this.writeFile(fileId, fileTitle, data, success, error, message);
         } else {
             fn2();
         }
@@ -94,64 +87,32 @@
 
         return defaultText;
     };
-
-
     /**
-     * 文件保存到远端核心方法
-     * @param filename 需要保存的文件名称
-     * @param data 需要保存的数据
-     * @param success 保存成功回调
-     * @param error 保存失败回调
-     * @param asLibrary
-     * @param folderId
-     * @param base64Encoded
+     * 加载文件ID
      */
-    RemoteClient.prototype.insertFile = function (title, data, success, error, asLibrary = false, folderId, base64Encoded = false, id, commitMsg, mimeType) {
-        var fileId;
-        if (id) {
-            fileId = id;
-        } else {
-            var localFileId = localStorage.getItem("_fileId");
-            if (localFileId) {
-                fileId = localFileId;
-            } else {
-                fileId = 'id-' + new Date().getTime().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-                localStorage.setItem("_fileId", fileId);
-            }
+    RemoteClient.prototype.loadFileId = function () {
+        let fileId = localStorage.getItem(".file_id");
+        if (fileId) {
+            return fileId;
         }
-        if (!asLibrary) {
-            // 不进行包装的时候直接进行数据传输
-            // 开始构建请求
+        fileId = 'id-' + new Date().getTime().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+        localStorage.setItem(".file_id", fileId);
+        return fileId;
+    }
+    /**
+     * 第一次会通过app.js直接调用该方法
+     */
+    RemoteClient.prototype.insertFile = function (title, data, success, error, create = true, commitMsg, encoding) {
+        if (create) {
             // 生成文件唯一ID
-            const requestBody = {
-                filename: title,
-                fileId: fileId,
+            success(this.createRemoteFile(this.loadFileId(), title, {
                 data: data,
-                commitMsg: commitMsg
-            }
-            const req = new mxXmlRequest(this.saveUrl, JSON.stringify(requestBody), 'POST');
-
-            this.executeRequest(req, mxUtils.bind(this, function () {
-                if (req.getStatus() === 200) {
-                    success(new RemoteFile(this.ui, data, title, fileId));
-                } else {
-                    error({message: '请求远端接口失败'});
-                }
-            }), error);
-            // 默认不再进行base64加密，除非是png，svg这种类型
-            // if (!base64Encoded) {
-            //     data = Base64.encode(data);
-            // }
-            this.writeFile(fileId, title, base64Encoded, data, mxUtils.bind(this, function (req) {
-                try {
-                    const msg = JSON.parse(req.params);
-                    success(this.createRemoteFile(fileId, title, msg, asLibrary));
-                } catch (e) {
-                    error(e);
-                }
-            }), error, commitMsg, mimeType);
+                fileName: title,
+                encoding: encoding
+            }, false))
+        } else {
+            this.writeFile(this.loadFileId(), title, data, success, error, commitMsg);
         }
-
     };
     /**
      * Translates this point by the given vector.
@@ -162,13 +123,7 @@
      * @param asLibrary
      * @param base64Encoded 是否base64加密
      */
-    RemoteClient.prototype.createRemoteFile = function (fileId, filename, params, asLibrary) {
-        const meta = {
-            id: params.fileId,
-            title: params.fileName,
-            data: params.data,
-        };
-        EditorUi.debug('创建远端文件', params);
+    RemoteClient.prototype.createRemoteFile = function (fileId, filename, params) {
         var content = params.data;
         if (params.encoding == 'base64') {
             if (/\.jpe?g$/i.test(params.fileName)) {
@@ -189,9 +144,7 @@
                 }
             }
         }
-        EditorUi.debug('创建' + (asLibrary) ? 'library' : 'file');
-
-        return (asLibrary) ? new RemoteLibrary(this.ui, content, meta) : new RemoteFile(this.ui, content, filename, fileId);
+        return new RemoteFile(this.ui, content, filename, fileId);
     };
     /**
      * 发送请求
@@ -235,56 +188,34 @@
     };
 
     /**
-     * 获取文件
+     * 加载文件逻辑，根据地址栏参数（主要是fileId）加载远端文件数据
      */
-    RemoteClient.prototype.getFile = function (path, success, error, asLibrary, checkExists) {
-        asLibrary = (asLibrary != null) ? asLibrary : false;
-        var arr = JSON.parse(path);
+    RemoteClient.prototype.getFile = function (urlParam, success, error) {
+        var arr = JSON.parse(urlParam);
         var fileId = arr[0];
         if (fileId) {
             // 加载文件重置fileId
-            localStorage.setItem("_fileId", fileId);
+            localStorage.setItem(".file_id", fileId);
         }
         var fileName = arr[1];
-        var binary = /\.png$/i.test(fileName);
-
-        // Handles .vsdx, Gliffy and PNG+XML files by creating a temporary file
-        if (!checkExists && (/\.v(dx|sdx?)$/i.test(path) || /\.gliffy$/i.test(path) ||
-            /\.pdf$/i.test(path) || (!this.ui.useCanvasForExport && binary))) {
-            // Should never be null
-            if (_token != null) {
-                var url = this.baseUrl + '/repos/' + org + '/' + repo +
-                    '/contents/' + path + '?ref=' + ref;
-                var headers = {'Authorization': 'token ' + _token};
-                tokens = path.split('/');
-                var name = (tokens.length > 0) ? tokens[tokens.length - 1] : path;
-                this.ui.convertFile(url, name, null, this.extension, success, error, null, headers);
-            } else {
-                error({message: mxResources.get('accessDenied')});
-            }
-        } else {
-            // Adds random parameter to bypass cache
-            // var rnd = '&t=' + new Date().getTime();
-            var req = new mxXmlRequest(this.baseHostUrl + this.loadUrl + "?fileId=" + fileId, null, 'GET');
-
-            this.executeRequest(req, mxUtils.bind(this, function (req) {
-                try {
-                    // 获取成功后，加载文件
-                    if (req.getText()) {
-                        success(this.createRemoteFile(fileId, fileName, JSON.parse(req.getText()), false));
-                    } else {
-                        error({message: '根据{' + fileId + '}加载数据为空'});
-                    }
-                } catch (e) {
-                    error(e);
+        var req = new mxXmlRequest(this.loadUrl + "?fileId=" + fileId, null, 'GET');
+        this.executeRequest(req, mxUtils.bind(this, function (req) {
+            try {
+                // 获取成功后，加载文件
+                if (req.getText()) {
+                    success(this.createRemoteFile(fileId, fileName, JSON.parse(req.getText()), false));
+                } else {
+                    error({message: '根据{' + fileId + '}加载数据为空'});
                 }
-            }), error);
-        }
+            } catch (e) {
+                error(e);
+            }
+        }), error);
     };
     /**
-     * 写入文件
+     * 核心的调用远端请求方法，限定所有保存逻辑都走writeFile逻辑
      */
-    RemoteClient.prototype.writeFile = function (fileId, fileTitle, base64Encoded, data, success, error, message, mimeType) {
+    RemoteClient.prototype.writeFile = function (fileId, fileTitle, data, success, error, commitMsg, encoding) {
         if (data.length >= this.maxFileSize) {
             error({
                 message: mxResources.get('drawingTooLarge') + ' (' +
@@ -296,21 +227,31 @@
                     fileId: fileId,
                     fileName: fileTitle,
                     data: data,
-                    encoding: base64Encoded ? "base64" : "",
-                    commitMsg: message,
-                    mimeType: mimeType
+                    commitMsg: commitMsg,
+                    encoding: encoding
                 };
             const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
             // 如果是其他类型的文件格式需要做格式转换
             this.executeRequest(req, mxUtils.bind(this, function (req) {
-                success(req);
+                try {
+                    success(this.createRemoteFile(fileId, fileTitle, JSON.parse(req.params), false));
+                } catch (e) {
+                    error(e);
+                }
             }), error);
         }
     };
+
+    /**
+     * 提交弹窗
+     * @param filename 文件名称
+     * @param isNew true 新增 false 修改
+     * @param success 成功回调
+     * @param cancel 取消
+     */
     RemoteClient.prototype.showCommitDialog = function (filename, isNew, success, cancel) {
         // Pauses spinner while commit message dialog is shown
         var resume = this.ui.spinner.pause();
-
         var dlg = new FilenameDialog(this.ui, mxResources.get((isNew) ? 'addedFile' : 'updateFile',
             [filename]), mxResources.get('ok'), mxUtils.bind(this, function (message) {
             resume(function () {

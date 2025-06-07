@@ -631,7 +631,7 @@ App.main = function (callback, createUi) {
                 if (bootstrap != null) {
                     var content = mxUtils.getTextContent(bootstrap);
 
-                    if (CryptoJS.MD5(content).toString() != '06836f7b03b0e236545e4d26c6bcd624') {
+                    if (CryptoJS.MD5(content).toString() != 'd90a6d87f538ac52a1b53971eaa88886') {
                         console.log('Change bootstrap script MD5 in the previous line:', CryptoJS.MD5(content).toString());
                         alert('[Dev] Bootstrap script change requires update of CSP');
                     }
@@ -1523,8 +1523,7 @@ App.prototype.init = function () {
 // 刷新配置,动态加载配置
 App.refreshConfig = function () {
     //     发送请求加载全局配置
-
-    const req = new mxXmlRequest('/drawio/drawio/config', null, 'GET');
+    const req = new mxXmlRequest('/drawio/config', null, 'GET');
 
     try {
         let acceptResponse = true;
@@ -1550,15 +1549,11 @@ App.refreshConfig = function () {
                             Editor.configure(window.DRAWIO_CONFIG);
                             mxSettings.load();
                         } else {
-                            throw new Error(this.getErrorMessage(req,
-                                mxResources.get('error') + ' 加载配置发生错误' + response.msg)
-                            );
+                            throw new Error(mxResources.get('error') + ' 加载配置发生错误' + response.msg);
                         }
                     }
                 } else {
-                    throw new Error(this.getErrorMessage(req,
-                        mxResources.get('error') + ' 加载配置发生错误')
-                    );
+                    throw new Error(mxResources.get('error') + ' 加载配置发生错误');
                 }
             }
         }), mxUtils.bind(this, function (err) {
@@ -3124,7 +3119,13 @@ App.prototype.showSplash = function (force) {
         Editor.useLocalStorage = prev;
 
     } else if (urlParams['create'] == null) {
-        showSecondDialog();
+        // 这里会在文件无法获取到的时候打开弹窗 取消这个弹窗依然选择remote模式进行保存
+        // showSecondDialog();
+        this.setMode(App.MODE_REMOTE, true);
+        var prev = Editor.useLocalStorage;
+        this.createFile(this.defaultFilename,
+            null, null, null, null, null, null, true);
+        Editor.useLocalStorage = prev;
     }
 };
 
@@ -3773,6 +3774,7 @@ App.prototype.saveFile = function (forceDialog, success) {
                             window.openFile.setData(this.getFileData(true));
                             this.openLink(this.getUrl(window.location.pathname), null, true);
                         } else if (prev != mode) {
+                            // 第一次保存时，走这个逻辑
                             var createFile = mxUtils.bind(this, function (folderId) {
                                 var graph = this.editor.graph;
                                 var selection = graph.getSelectionCells();
@@ -3794,6 +3796,7 @@ App.prototype.saveFile = function (forceDialog, success) {
                                 this.pickFolder(mode, createFile);
                             }
                         } else if (mode != null) {
+                            // 后续保存，走这个逻辑
                             this.save(name, done);
                         }
                     }
@@ -3804,7 +3807,7 @@ App.prototype.saveFile = function (forceDialog, success) {
 
             var dlg = new SaveDialog(this, filename, mxUtils.bind(this, function (input, mode, folderId) {
                 saveFunction(input.value, mode, input, folderId);
-                this.hideDialog();
+                // this.hideDialog();
             }), (allowTab) ? null : ['_blank']);
 
             this.showDialog(dlg.container, 420, 150, true, false, mxUtils.bind(this, function () {
@@ -4051,7 +4054,7 @@ App.prototype.createFile = function (title, data, libs, mode, done, replace, fol
                 StorageFile.insertFile(this, title, data, fileCreated, error);
             } else if (mode === App.MODE_REMOTE && this.remote != null) {
                 // 将文件保存到远端
-                this.remote.insertFile(title, data, fileCreated, error);
+                this.remote.insertFile(title, data, fileCreated, error, true, null, null);
             } else if (!tempFile && mode == App.MODE_DEVICE && EditorUi.nativeFileSupport) {
                 complete();
 

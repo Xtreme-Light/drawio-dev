@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @Slf4j
-@RequestMapping("/drawio")
 public class DrawioController {
 
     private static final Map<String, DrawioFile> data = new HashMap<>();
@@ -49,8 +48,8 @@ public class DrawioController {
     public RetBean getConfig() {
         RetBean retBean = new RetBean();
         DrawioConfig drawioConfig = new DrawioConfig();
-        drawioConfig.setDefaultLibraries("flowchart");
-        drawioConfig.setEnabledLibraries(List.of("flowchart"));
+        drawioConfig.setDefaultLibraries(null);
+        drawioConfig.setEnabledLibraries(null);
         retBean.setData(drawioConfig);
         return retBean;
     }
