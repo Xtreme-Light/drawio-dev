@@ -3807,6 +3807,7 @@ App.prototype.saveFile = function (forceDialog, success) {
 
             var dlg = new SaveDialog(this, filename, mxUtils.bind(this, function (input, mode, folderId) {
                 saveFunction(input.value, mode, input, folderId);
+                // 在精简保存代码后，发现这里会立马关闭掉commitDialog，暂时注释
                 // this.hideDialog();
             }), (allowTab) ? null : ['_blank']);
 

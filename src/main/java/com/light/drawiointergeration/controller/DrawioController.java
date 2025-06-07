@@ -18,12 +18,13 @@ public class DrawioController {
 
     @PostMapping("/saveFile")
     public void saveFile(@RequestBody DrawioFile drawioFile) {
-        log.info("接收到请求 {}", drawioFile);
+        log.info("接收到保存文件请求 {}", drawioFile);
         data.put(drawioFile.getFileId(), drawioFile);
     }
 
     @GetMapping("/getFile")
     public DrawioFile getFile(@RequestParam("fileId") String fileId) {
+        log.info("接收到加载文件请求 {}", fileId);
         return data.get(fileId);
     }
 
@@ -46,6 +47,8 @@ public class DrawioController {
 
     @GetMapping("/config")
     public RetBean getConfig() {
+        log.info("接收到加载配置请求");
+
         RetBean retBean = new RetBean();
         DrawioConfig drawioConfig = new DrawioConfig();
         drawioConfig.setDefaultLibraries(null);
