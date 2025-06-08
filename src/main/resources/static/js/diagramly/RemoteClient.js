@@ -114,6 +114,13 @@
             this.writeFile(this.loadFileId(), title, data, success, error, commitMsg);
         }
     };
+
+    /**
+     * 第一次会通过app.js直接调用该方法
+     */
+    RemoteClient.prototype.exportFile = function (title, data, success, error, create = true, commitMsg, encoding, mimeType) {
+        this.writeFile(this.loadFileId(), title, data, success, error, commitMsg, encoding, mimeType);
+    };
     /**
      * Translates this point by the given vector.
      *
@@ -167,7 +174,16 @@
 
                 if (acceptResponse) {
                     if ((req.getStatus() >= 200 && req.getStatus() <= 299)) {
-                        success(req);
+                        const retBody = req.getText()
+                        let parse = JSON.parse(retBody);
+                        if (parse.code === "200") {
+                            success(req);
+                        }else {
+                            error({
+                                status: req.getStatus(), message: this.getErrorMessage(req,
+                                    mxResources.get('error') + ' ' + parse.code + ' ' + parse.msg)
+                            });
+                        }
                     } else {
                         error({
                             status: req.getStatus(), message: this.getErrorMessage(req,
@@ -203,7 +219,12 @@
             try {
                 // 获取成功后，加载文件
                 if (req.getText()) {
-                    success(this.createRemoteFile(fileId, fileName, JSON.parse(req.getText()), false));
+                    let retTxt = JSON.parse(req.getText());
+                    if (retTxt === "200") {
+                        success(this.createRemoteFile(fileId, fileName, retTxt.data, false));
+                    }else {
+                        error({message: '根据{' + fileId + '}加载数据为空,错误信息为 ' + retTxt.msg});
+                    }
                 } else {
                     error({message: '根据{' + fileId + '}加载数据为空'});
                 }
@@ -215,7 +236,11 @@
     /**
      * 核心的调用远端请求方法，限定所有保存逻辑都走writeFile逻辑
      */
-    RemoteClient.prototype.writeFile = function (fileId, fileTitle, data, success, error, commitMsg, encoding) {
+    RemoteClient.prototype.writeFile = function (fileId, fileTitle, data, success, error, commitMsg, encoding, mimeType) {
+        this.uploadXmlData(fileId, fileTitle, data, success, error, commitMsg, encoding, mimeType);
+        this.uploadPng(data);
+    };
+    RemoteClient.prototype.uploadXmlData = function (fileId, fileTitle, data, success, error, commitMsg, encoding, mimeType) {
         if (data.length >= this.maxFileSize) {
             error({
                 message: mxResources.get('drawingTooLarge') + ' (' +
@@ -229,7 +254,8 @@
                     data: data,
                     commitMsg: commitMsg,
                     encoding: encoding,
-                    shareUrl:(window.location.href.indexOf('#')>0)?window.location.href:null
+                    mimeType: mimeType,
+                    shareUrl: (window.location.href.indexOf('#') > 0) ? window.location.href : null
                 };
             const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
             // 如果是其他类型的文件格式需要做格式转换
@@ -242,6 +268,30 @@
             }), error);
         }
     };
+    RemoteClient.prototype.uploadPng = function (fileId, data) {
+        this.ui.exportToCanvas(mxUtils.bind(this, function (canvas) {
+            try {
+                const imageData = this.ui.createImageDataUri(canvas, data, "png", null);
+                const entity =
+                    {
+                        fileId: fileId,
+                        mimeType: "image/png",
+                        data: imageData
+                    };
+                const req = new mxXmlRequest(this.saveUrl, JSON.stringify(entity), 'POST');
+                // 如果是其他类型的文件格式需要做格式转换
+                this.executeRequest(req, mxUtils.bind(this, function (req) {
+                    console.info("上传png图片成功");
+                }), mxUtils.bind(this, function (err) {
+                    console.error("上传png图片失败", err);
+                }));
+            } catch (e) {
+                console.error("上传png图片失败", e);
+            }
+        }), null, {}, null, mxUtils.bind(this, function (err) {
+
+        }), null, true, 1, false, false, null, null, "0", true, false, "light", "diagram");
+    }
 
     /**
      * 提交弹窗

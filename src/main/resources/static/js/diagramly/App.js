@@ -2117,7 +2117,7 @@ App.prototype.getThumbnail = function (width, fn, border) {
             graph.model.setRoot(page.root);
         }
 
-        // Uses client-side canvas export
+        // Uses client-side canvas export 使用客户端的canvas进行导出
         if (mxClient.IS_CHROMEAPP || this.useCanvasForExport) {
             this.editor.exportToCanvas(mxUtils.bind(this, function (canvas) {
                     try {
@@ -5340,7 +5340,18 @@ App.prototype.pickFolder = function (mode, fn, enabled, direct, force, returnPic
  *
  */
 App.prototype.exportFile = function (data, filename, mimeType, base64Encoded, mode, folderId) {
-    if (mode == App.MODE_DROPBOX) {
+    if (mode == App.MODE_REMOTE) {
+        // 	在远端场景下的导出，直接复用
+        if (this.remote != null && this.spinner.spin(document.body, mxResources.get('saving'))) {
+            // Must insert file as library to force the file to be written
+            this.remote.exportFile(filename, data, mxUtils.bind(this, function () {
+                this.spinner.stop();
+            }), mxUtils.bind(this, function (resp) {
+                this.spinner.stop();
+                this.handleError(resp);
+            }), false, null, base64Encoded, mimeType);
+        }
+    } else if (mode == App.MODE_DROPBOX) {
         if (this.dropbox != null && this.spinner.spin(document.body, mxResources.get('saving'))) {
             // LATER: Add folder picker
             this.dropbox.insertFile(filename, (base64Encoded) ? this.base64ToBlob(data, mimeType) :
@@ -5425,17 +5436,6 @@ App.prototype.exportFile = function (data, filename, mimeType, base64Encoded, mo
             } else {
                 this.confirm(mxResources.get('replaceIt', [filename]), fn);
             }
-        }
-    } else if (mode == App.MODE_REMOTE) {
-        // 	在远端场景下的导出，直接复用
-        if (this.remote != null && this.spinner.spin(document.body, mxResources.get('saving'))) {
-            // Must insert file as library to force the file to be written
-            this.remote.insertFile(filename, data, mxUtils.bind(this, function () {
-                this.spinner.stop();
-            }), mxUtils.bind(this, function (resp) {
-                this.spinner.stop();
-                this.handleError(resp);
-            }), true, folderId, base64Encoded, null, '导出文件', mimeType);
         }
     }
 };
@@ -5529,6 +5529,7 @@ App.prototype.showAuthDialog = function (peer, showRememberOption, fn, closeFn) 
  * Checks if the client is authorized and calls the next step. The optional
  * readXml argument is used for import. Default is false. The optional
  * readLibrary argument is used for reading libraries. Default is false.
+ * 文件转换
  */
 App.prototype.convertFile = function (url, filename, mimeType, extension, success, error, executeRequest, headers) {
     var name = filename;

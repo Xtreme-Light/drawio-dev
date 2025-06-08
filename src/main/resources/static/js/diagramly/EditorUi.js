@@ -5265,27 +5265,18 @@
 				else if (mode == App.MODE_DEVICE || mode == 'download')
 				{
 					this.doSaveLocalFile(data, newTitle, mimeType, base64Encoded, null, defaultExtension);
-				} 
-				else if (newTitle != null && newTitle.length > 0)
-				{
-					var saveFile = mxUtils.bind(this, function(folderId)
-					{
-						try
-						{
+				}else if (newTitle != null && newTitle.length > 0) {
+					var saveFile = mxUtils.bind(this, function (folderId) {
+						try {
 							this.exportFile(data, newTitle, mimeType, base64Encoded, mode, folderId);
-						}
-						catch (e)
-						{
+						} catch (e) {
 							this.handleError(e);
 						}
 					});
 
-					if (folderId != null)
-					{
+					if (folderId != null) {
 						saveFile(folderId);
-					}
-					else
-					{
+					} else {
 						this.pickFolder(mode, saveFile);
 					}
 				}

@@ -17,16 +17,20 @@ public class DrawioController {
     private static final Map<String, DrawioFile> data = new HashMap<>();
 
     @PostMapping("/saveFile")
-    public void saveFile(@RequestBody DrawioFile drawioFile) {
+    public RetBean saveFile(@RequestBody DrawioFile drawioFile) {
         log.info("接收到保存文件请求 {}", drawioFile);
 
         data.put(drawioFile.getFileId(), drawioFile);
+        return RetBean.success;
     }
 
     @GetMapping("/getFile")
-    public DrawioFile getFile(@RequestParam("fileId") String fileId) {
+    public RetBean getFile(@RequestParam("fileId") String fileId) {
         log.info("接收到加载文件请求 {}", fileId);
-        return data.get(fileId);
+        if (data.containsKey(fileId)) {
+            return RetBean.success(data.get(fileId));
+        }
+        return RetBean.failure("找不到对应的文件信息");
     }
 
     @Data
