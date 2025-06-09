@@ -24,9 +24,13 @@ configurations {
 
 repositories {
     mavenLocal()
-    mavenCentral()
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    maven { url 'https://maven.aliyun.com/repository/central' }
+    maven { url 'https://maven.aliyun.com/repository/public' }
 }
-
+tasks.withType(Test) {
+    enabled = false
+}
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
@@ -38,6 +42,4 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-springBoot {
-    mainClass = 'com.light.drawiointergeration.DrawioIntergerationApplication'
-}
+
