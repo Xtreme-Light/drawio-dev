@@ -1,9 +1,6 @@
 package com.light.drawiointergeration.bean;
 
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 
 import java.util.List;
@@ -36,8 +33,6 @@ public class DrawioConfig {
      */
     private Boolean enableCustomLibraries = true;
 
-    @XmlRootElement
-    @XmlAccessorType(XmlAccessType.FIELD)
     public static final class GraphicDataXml {
 
 
